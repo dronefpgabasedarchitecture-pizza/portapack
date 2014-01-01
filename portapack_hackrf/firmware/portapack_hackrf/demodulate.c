@@ -26,7 +26,6 @@
 #include <math.h>
 
 #include "complex.h"
-#include "gr_fast.h"
 #include "fxpt_atan2.h"
  
 void am_demodulate_s32_s32(int32_t* src, int32_t* dst, const size_t sample_count) {
@@ -44,6 +43,7 @@ void fm_demodulate_s32_s32_init(fm_demodulate_s32_s32_state_t* const state, cons
 
 void fm_demodulate_s32_s32_atan(fm_demodulate_s32_s32_state_t* const state, const complex_s32_t* const start, const complex_s32_t* const end, int32_t* dst) {
 	complex_s32_t z1 = state->z1;
+	// TODO: Gain compensation based on ratio of sampling rate and deviation?
 	//const int32_t decimation_rate = 1;
 	//const float k = state->k * 4096.0f / decimation_rate;
 	const complex_s32_t* p = start;
@@ -51,11 +51,7 @@ void fm_demodulate_s32_s32_atan(fm_demodulate_s32_s32_state_t* const state, cons
 		const complex_s32_t s = *(p++);
 		const complex_s32_t t = multiply_conjugate_s32_s32(s, z1);
 		z1 = s;
-		//if( fm_demodulate_atan_mode ) {
-		//	*(dst++) = fast_atan2f(t.q, t.i) * k;
-		//} else {
-			*(dst++) = fxpt_atan2(t.q >> 12, t.i >> 12) >> 1;
-		//}
+		*(dst++) = fxpt_atan2(t.q >> 12, t.i >> 12) >> 1;
 	}
 	state->z1 = z1;
 }
@@ -67,6 +63,7 @@ void fm_demodulate_s16_s16_init(fm_demodulate_s16_s16_state_t* const state, cons
 
 void fm_demodulate_s16_s16_atan(fm_demodulate_s16_s16_state_t* const state, const complex_s16_t* const src, int16_t* dst, int32_t n) {
 	complex_s16_t z1 = state->z1;
+	// TODO: Gain compensation based on ratio of sampling rate and deviation?
 	//const int32_t decimation_rate = 1;
 	//const float k = state->k * 4096.0f / decimation_rate;
 	const complex_s16_t* p = src;
@@ -74,11 +71,7 @@ void fm_demodulate_s16_s16_atan(fm_demodulate_s16_s16_state_t* const state, cons
 		const complex_s16_t s = *(p++);
 		const complex_s32_t t = multiply_conjugate_s16_s32(s, z1);
 		z1 = s;
-		//if( fm_demodulate_atan_mode ) {
-		//	*(dst++) = fast_atan2f(t.q, t.i) * k;
-		//} else {
-			*(dst++) = fxpt_atan2(t.q >> 12, t.i >> 12) >> 1;
-		//}
+		*(dst++) = fxpt_atan2(t.q >> 12, t.i >> 12) >> 1;
 	}
 	state->z1 = z1;
 }

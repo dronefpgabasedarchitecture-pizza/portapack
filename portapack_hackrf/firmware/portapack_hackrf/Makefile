@@ -79,8 +79,8 @@ ifeq ($(ADDON),PORTAPACK)
 	SRC_M4_C += portapack.c
 	SRC_M4_C += portapack_audio.c
 	SRC_M4_C += portapack_i2s.c
-	SRC_M4_C += gr_fast_atan2f.c
 	SRC_M4_C += complex.c
+	#SRC_M4_C += gr_fast_atan2f.c
 	SRC_M4_C += fxpt_atan2.c
 	SRC_M4_C += decimate.c
 	SRC_M4_C += demodulate.c
