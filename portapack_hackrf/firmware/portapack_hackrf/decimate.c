@@ -27,13 +27,13 @@
 
 #include "complex.h"
 
-void decimate_by_2_s8_s16_init(decimate_by_2_s8_s16_state_t* const state) {
+void fir_cic3_decim_2_s8_s16_init(fir_cic3_decim_2_s8_s16_state_t* const state) {
 	state->i = 0;
 	state->q = 0;
 }
 
-void decimate_by_2_s8_s16(
-	decimate_by_2_s8_s16_state_t* const state,
+void fir_cic3_decim_2_s8_s16(
+	fir_cic3_decim_2_s8_s16_state_t* const state,
 	complex_s8_t* const src_and_dst,
 	int32_t n
 ) {
@@ -104,13 +104,13 @@ void decimate_by_2_s8_s16(
 	state->q = q;
 }
 
-void decimate_by_2_s16_s32_init(decimate_by_2_s16_s32_state_t* const state) {
+void fir_cic3_decim_2_s16_s32_init(fir_cic3_decim_2_s16_s32_state_t* const state) {
 	state->iq0 = 0;
 	state->iq1 = 0;
 }
 
-void decimate_by_2_s16_s32(
-	decimate_by_2_s16_s32_state_t* const state,
+void fir_cic3_decim_2_s16_s32(
+	fir_cic3_decim_2_s16_s32_state_t* const state,
 	complex_s16_t* const src_and_dst,
 	int32_t n
 ) {
@@ -163,13 +163,13 @@ void decimate_by_2_s16_s32(
 	state->iq1 = t2;
 }
 
-void decimate_by_2_s16_s16_init(decimate_by_2_s16_s16_state_t* const state) {
+void fir_cic3_decim_2_s16_s16_init(fir_cic3_decim_2_s16_s16_state_t* const state) {
 	state->iq0 = 0;
 	state->iq1 = 0;
 }
 
-void decimate_by_2_s16_s16(
-	decimate_by_2_s16_s16_state_t* const state,
+void fir_cic3_decim_2_s16_s16(
+	fir_cic3_decim_2_s16_s16_state_t* const state,
 	complex_s16_t* const src,
 	complex_s16_t* const dst,
 	int32_t n

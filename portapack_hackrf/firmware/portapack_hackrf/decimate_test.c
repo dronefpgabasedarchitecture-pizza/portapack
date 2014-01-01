@@ -72,7 +72,7 @@ static int test_translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16() {
 	return results_match(&data, &expected_result, sizeof(expected_result));
 }
 
-static int test_decimate_by_2_s16_s32() {
+static int test_fir_cic3_decim_2_s16_s32() {
 	complex_s16_t data[] = {
 		{   -53,   198 }, {  -278,   196 }, {    12,   -90 }, {  -311,  -204 },
 		{  -178,  -231 }, {  -124,   279 }, {    93,  -413 }, {   346,   360 },
@@ -84,12 +84,12 @@ static int test_decimate_by_2_s16_s32() {
 		{   539,  -402 }, {   106,   -68 }, {   279,    64 }, {   385,  -117 },
 	};
 
-	decimate_by_2_s16_s32_state_t state;
-	decimate_by_2_s16_s32_init(&state);
-	decimate_by_2_s16_s32(&state, &data[ 0],  4);
-	decimate_by_2_s16_s32(&state, &data[ 4],  4);
-	decimate_by_2_s16_s32(&state, &data[ 8], 12);
-	decimate_by_2_s16_s32(&state, &data[20], 12);
+	fir_cic3_decim_2_s16_s32_state_t state;
+	fir_cic3_decim_2_s16_s32_init(&state);
+	fir_cic3_decim_2_s16_s32(&state, &data[ 0],  4);
+	fir_cic3_decim_2_s16_s32(&state, &data[ 4],  4);
+	fir_cic3_decim_2_s16_s32(&state, &data[ 8], 12);
+	fir_cic3_decim_2_s16_s32(&state, &data[20], 12);
 
 	const complex_s32_t expected_result[] = {
 		{  -437,   790 }, { -1162,   312 }, { -1579, -1116 }, {    75,  -273 },
@@ -101,7 +101,7 @@ static int test_decimate_by_2_s16_s32() {
 	return results_match(&data, &expected_result, sizeof(expected_result));
 }
 
-static int test_decimate_by_2_s16_s16() {
+static int test_fir_cic3_decim_2_s16_s16() {
 	complex_s16_t data[] = {
 		{   -53,   198 }, {  -278,   196 }, {    12,   -90 }, {  -311,  -204 },
 		{  -178,  -231 }, {  -124,   279 }, {    93,  -413 }, {   346,   360 },
@@ -113,12 +113,12 @@ static int test_decimate_by_2_s16_s16() {
 		{   539,  -402 }, {   106,   -68 }, {   279,    64 }, {   385,  -117 },
 	};
 
-	decimate_by_2_s16_s16_state_t state;
-	decimate_by_2_s16_s16_init(&state);
-	decimate_by_2_s16_s16(&state, &data[ 0], &data[ 0],  4);
-	decimate_by_2_s16_s16(&state, &data[ 4], &data[ 2],  4);
-	decimate_by_2_s16_s16(&state, &data[ 8], &data[ 4], 16);
-	decimate_by_2_s16_s16(&state, &data[20], &data[10], 12);
+	fir_cic3_decim_2_s16_s16_state_t state;
+	fir_cic3_decim_2_s16_s16_init(&state);
+	fir_cic3_decim_2_s16_s16(&state, &data[ 0], &data[ 0],  4);
+	fir_cic3_decim_2_s16_s16(&state, &data[ 4], &data[ 2],  4);
+	fir_cic3_decim_2_s16_s16(&state, &data[ 8], &data[ 4], 16);
+	fir_cic3_decim_2_s16_s16(&state, &data[20], &data[10], 12);
 
 	const complex_s16_t expected_result[] = {
 		{  -437,   790 }, { -1162,   312 }, { -1579, -1116 }, {    75,  -273 },
@@ -138,6 +138,6 @@ static void halt_if_failed(const int test_result) {
 
 void decimate_test() {
 	halt_if_failed(test_translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16());
-	halt_if_failed(test_decimate_by_2_s16_s32());
-	halt_if_failed(test_decimate_by_2_s16_s16());
+	halt_if_failed(test_fir_cic3_decim_2_s16_s32());
+	halt_if_failed(test_fir_cic3_decim_2_s16_s16());
 }

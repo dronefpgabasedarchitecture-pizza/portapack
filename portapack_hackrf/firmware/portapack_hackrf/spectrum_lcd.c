@@ -112,7 +112,7 @@ static volatile uint32_t duration_all = 0;
 
 typedef struct rx_fm_broadcast_to_audio_state_t {
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_state_t dec_stage_1_state;
-	decimate_by_2_s16_s16_state_t dec_stage_2_state;
+	fir_cic3_decim_2_s16_s16_state_t dec_stage_2_state;
 	fm_demodulate_s16_s16_state_t fm_demodulate_state;
 	fir_cic4_decim_2_real_s16_s16_state_t audio_dec_1;
 	fir_cic4_decim_2_real_s16_s16_state_t audio_dec_2;
@@ -124,7 +124,7 @@ static rx_fm_broadcast_to_audio_state_t rx_fm_broadcast_to_audio_state;
 
 void rx_fm_broadcast_to_audio_init(rx_fm_broadcast_to_audio_state_t* const state) {
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_init(&state->dec_stage_1_state);
-	decimate_by_2_s16_s16_init(&state->dec_stage_2_state);
+	fir_cic3_decim_2_s16_s16_init(&state->dec_stage_2_state);
 	fm_demodulate_s16_s16_init(&state->fm_demodulate_state, 768000, 75000);
 	fir_cic4_decim_2_real_s16_s16_init(&state->audio_dec_1);
 	fir_cic4_decim_2_real_s16_s16_init(&state->audio_dec_2);
@@ -144,7 +144,7 @@ void rx_fm_broadcast_to_audio(rx_fm_broadcast_to_audio_state_t* const state, com
 	/* 1.544MHz complex<int16>[N/2]
 	 * -> 3rd order CIC decimation by 2, gain of 8
 	 * -> 768kHz complex<int16>[N/4] */
-	decimate_by_2_s16_s16(&state->dec_stage_2_state, (complex_s16_t*)in, out, sample_count_in / 2);
+	fir_cic3_decim_2_s16_s16(&state->dec_stage_2_state, (complex_s16_t*)in, out, sample_count_in / 2);
 
 	const uint32_t decimate_end_time = systick_get_value();
 
@@ -182,10 +182,10 @@ void rx_fm_broadcast_to_audio(rx_fm_broadcast_to_audio_state_t* const state, com
 
 typedef struct rx_fm_narrowband_to_audio_state_t {
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_state_t bb_dec_1;
-	decimate_by_2_s16_s16_state_t bb_dec_2;
-	decimate_by_2_s16_s16_state_t bb_dec_3;
-	decimate_by_2_s16_s16_state_t bb_dec_4;
-	decimate_by_2_s16_s16_state_t bb_dec_5;
+	fir_cic3_decim_2_s16_s16_state_t bb_dec_2;
+	fir_cic3_decim_2_s16_s16_state_t bb_dec_3;
+	fir_cic3_decim_2_s16_s16_state_t bb_dec_4;
+	fir_cic3_decim_2_s16_s16_state_t bb_dec_5;
 	// TODO: Channel filter here.
 	fm_demodulate_s16_s16_state_t fm_demodulate;
 	fir_nbfm_decim_2_real_s16_s16_state_t audio_dec;
@@ -195,10 +195,10 @@ static rx_fm_narrowband_to_audio_state_t rx_fm_narrowband_to_audio_state;
 
 void rx_fm_narrowband_to_audio_init(rx_fm_narrowband_to_audio_state_t* const state) {
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_init(&state->bb_dec_1);
-	decimate_by_2_s16_s16_init(&state->bb_dec_2);
-	decimate_by_2_s16_s16_init(&state->bb_dec_3);
-	decimate_by_2_s16_s16_init(&state->bb_dec_4);
-	decimate_by_2_s16_s16_init(&state->bb_dec_5);
+	fir_cic3_decim_2_s16_s16_init(&state->bb_dec_2);
+	fir_cic3_decim_2_s16_s16_init(&state->bb_dec_3);
+	fir_cic3_decim_2_s16_s16_init(&state->bb_dec_4);
+	fir_cic3_decim_2_s16_s16_init(&state->bb_dec_5);
 	// TODO: Channel filter here.
 	fm_demodulate_s16_s16_init(&state->fm_demodulate, 96000, 2500);
 	fir_nbfm_decim_2_real_s16_s16_init(&state->audio_dec);
@@ -216,7 +216,7 @@ void rx_fm_narrowband_to_audio(rx_fm_narrowband_to_audio_state_t* const state, c
 	/* 1.544MHz complex<int16>[N/2]
 	 * -> 3rd order CIC decimation by 2, gain of 8
 	 * -> 768kHz complex<int16>[N/4] */
-	decimate_by_2_s16_s16(&state->bb_dec_2, (complex_s16_t*)in, out, sample_count_in / 2);
+	fir_cic3_decim_2_s16_s16(&state->bb_dec_2, (complex_s16_t*)in, out, sample_count_in / 2);
 
 	/* TODO: Gain through five CICs will be 32768 (8 ^ 5). Incorporate gain adjustment
 	 * somewhere in the chain.
@@ -234,8 +234,8 @@ void rx_fm_narrowband_to_audio(rx_fm_narrowband_to_audio_state_t* const state, c
 		p->q >>= 6;
 	}
 
-	decimate_by_2_s16_s16(&state->bb_dec_3, out, out, sample_count_in / 4);
-	decimate_by_2_s16_s16(&state->bb_dec_4, out, out, sample_count_in / 8);
+	fir_cic3_decim_2_s16_s16(&state->bb_dec_3, out, out, sample_count_in / 4);
+	fir_cic3_decim_2_s16_s16(&state->bb_dec_4, out, out, sample_count_in / 8);
 
 	/* Temporary code to adjust gain in complex_s16_t samples out of CIC stages */
 	p = (complex_s16_t*)out;
@@ -245,7 +245,7 @@ void rx_fm_narrowband_to_audio(rx_fm_narrowband_to_audio_state_t* const state, c
 		p++;
 	}
 
-	decimate_by_2_s16_s16(&state->bb_dec_5, out, out, sample_count_in / 16);
+	fir_cic3_decim_2_s16_s16(&state->bb_dec_5, out, out, sample_count_in / 16);
 
 	const uint32_t decimate_end_time = systick_get_value();
 
@@ -271,10 +271,10 @@ void rx_fm_narrowband_to_audio(rx_fm_narrowband_to_audio_state_t* const state, c
 
 typedef struct rx_am_to_audio_state_t {
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_state_t bb_dec_1;
-	decimate_by_2_s16_s16_state_t bb_dec_2;
-	decimate_by_2_s16_s16_state_t bb_dec_3;
-	decimate_by_2_s16_s16_state_t bb_dec_4;
-	decimate_by_2_s16_s16_state_t bb_dec_5;
+	fir_cic3_decim_2_s16_s16_state_t bb_dec_2;
+	fir_cic3_decim_2_s16_s16_state_t bb_dec_3;
+	fir_cic3_decim_2_s16_s16_state_t bb_dec_4;
+	fir_cic3_decim_2_s16_s16_state_t bb_dec_5;
 	// TODO: Channel filter here.
 	// TODO: Rename NBFM filter to be more generic, so it can be shared with AM, others.
 	fir_nbfm_decim_2_real_s16_s16_state_t audio_dec;
@@ -284,10 +284,10 @@ static rx_am_to_audio_state_t rx_am_to_audio_state;
 
 void rx_am_to_audio_init(rx_am_to_audio_state_t* const state) {
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_init(&state->bb_dec_1);
-	decimate_by_2_s16_s16_init(&state->bb_dec_2);
-	decimate_by_2_s16_s16_init(&state->bb_dec_3);
-	decimate_by_2_s16_s16_init(&state->bb_dec_4);
-	decimate_by_2_s16_s16_init(&state->bb_dec_5);
+	fir_cic3_decim_2_s16_s16_init(&state->bb_dec_2);
+	fir_cic3_decim_2_s16_s16_init(&state->bb_dec_3);
+	fir_cic3_decim_2_s16_s16_init(&state->bb_dec_4);
+	fir_cic3_decim_2_s16_s16_init(&state->bb_dec_5);
 	// TODO: Channel filter here.
 	fir_nbfm_decim_2_real_s16_s16_init(&state->audio_dec);
 }
@@ -304,7 +304,7 @@ void rx_am_to_audio(rx_am_to_audio_state_t* const state, complex_s8_t* const in,
 	/* 1.544MHz complex<int16>[N/2]
 	 * -> 3rd order CIC decimation by 2, gain of 8
 	 * -> 768kHz complex<int16>[N/4] */
-	decimate_by_2_s16_s16(&state->bb_dec_2, (complex_s16_t*)in, out, sample_count_in / 2);
+	fir_cic3_decim_2_s16_s16(&state->bb_dec_2, (complex_s16_t*)in, out, sample_count_in / 2);
 
 	/* TODO: Gain through five CICs will be 32768 (8 ^ 5). Incorporate gain adjustment
 	 * somewhere in the chain.
@@ -322,8 +322,8 @@ void rx_am_to_audio(rx_am_to_audio_state_t* const state, complex_s8_t* const in,
 		p->q >>= 6;
 	}
 
-	decimate_by_2_s16_s16(&state->bb_dec_3, out, out, sample_count_in / 4);
-	decimate_by_2_s16_s16(&state->bb_dec_4, out, out, sample_count_in / 8);
+	fir_cic3_decim_2_s16_s16(&state->bb_dec_3, out, out, sample_count_in / 4);
+	fir_cic3_decim_2_s16_s16(&state->bb_dec_4, out, out, sample_count_in / 8);
 
 	/* Temporary code to adjust gain in complex_s16_t samples out of CIC stages */
 	p = (complex_s16_t*)out;
@@ -333,7 +333,7 @@ void rx_am_to_audio(rx_am_to_audio_state_t* const state, complex_s8_t* const in,
 		p++;
 	}
 
-	decimate_by_2_s16_s16(&state->bb_dec_5, out, out, sample_count_in / 16);
+	fir_cic3_decim_2_s16_s16(&state->bb_dec_5, out, out, sample_count_in / 16);
 
 	const uint32_t decimate_end_time = systick_get_value();
 
