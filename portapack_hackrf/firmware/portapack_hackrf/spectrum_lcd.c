@@ -191,6 +191,12 @@ void fir_wbfm_decim_2_real_s16_s16_init(fir_wbfm_decim_2_real_s16_s16_state_t* c
 }
 
 void fir_wbfm_decim_2_real_s16_s16(fir_wbfm_decim_2_real_s16_s16_state_t* const state, int16_t* src, int16_t* dst, int32_t n) {
+	/* Broadcast FM audio filter with decimation */
+
+	/* 96kHz int16_t input (sample count "n" must be multiple of 4)
+	 * -> FIR filter, 0 - 15kHz pass, 19kHz to Nyquist stop
+	 * -> 48kHz int16_t output, gain of 1.0 (I think).
+	 */
 	static const int16_t tap[] = {
 	    -27,    166,    104,    -36,   -174,   -129,    109,    287,    148,
 	   -232,   -430,   -130,    427,    597,     49,   -716,   -778,    137,
