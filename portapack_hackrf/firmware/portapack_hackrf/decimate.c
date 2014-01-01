@@ -244,7 +244,7 @@ void unpack_complex_s8_to_dual_s16(complex_s8_t* src, int16_t* dst_i, int16_t* d
 }
 */
 /*
-void downconvert_fs_over_4(int16_t* i, int16_t* q, const size_t n) {
+void downconvert_fs_over_4(int16_t* i, int16_t* q, int32_t n) {
 	const uint32_t zero = 0;
 	for(;n > 0; n-=4) {
 		const uint32_t i1_i0 = *(i++);
@@ -357,3 +357,115 @@ void translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16(
 	state->q1_i0 = q1_i0;
 	state->q0_i1 = q0_i1;
 }
+
+void fir_cic4_decim_2_real_s16_s16_init(fir_cic4_decim_2_real_s16_s16_state_t* const state) {
+	for(uint_fast8_t i=0; i<7; i++) {
+		state->z[i] = 0;
+	}
+}
+
+void fir_cic4_decim_2_real_s16_s16(
+	fir_cic4_decim_2_real_s16_s16_state_t* const state,
+	int16_t* src,
+	int16_t* dst,
+	int32_t n
+) {
+	static const int16_t tap[] = { 1, 4, 6, 4, 1 };
+
+	for(; n>0; n-=2) {
+		state->z[5] = *(src++);
+		state->z[5+1] = *(src++);
+
+		int32_t t = 0;
+		for(int_fast8_t j=0; j<5; j++) {
+			t += state->z[j] * tap[j];
+			state->z[j] = state->z[j+2];
+		}
+		*(dst++) = t >> 4;
+	}
+}
+
+void fir_wbfm_decim_2_real_s16_s16_init(fir_wbfm_decim_2_real_s16_s16_state_t* const state) {
+	for(uint_fast8_t i=0; i<65; i++) {
+		state->z[i] = 0;
+	}
+}
+
+void fir_wbfm_decim_2_real_s16_s16(
+	fir_wbfm_decim_2_real_s16_s16_state_t* const state,
+	int16_t* src,
+	int16_t* dst,
+	int32_t n
+) {
+	/* Broadcast FM audio filter with decimation */
+
+	/* 96kHz int16_t input (sample count "n" must be multiple of 4)
+	 * -> FIR filter, 0 - 15kHz pass, 19kHz to Nyquist stop
+	 * -> 48kHz int16_t output, gain of 1.0 (I think).
+	 */
+	static const int16_t tap[] = {
+	    -27,    166,    104,    -36,   -174,   -129,    109,    287,    148,
+	   -232,   -430,   -130,    427,    597,     49,   -716,   -778,    137,
+	   1131,    957,   -493,  -1740,  -1121,   1167,   2733,   1252,  -2633,
+	  -4899,  -1336,   8210,  18660,  23254,  18660,   8210,  -1336,  -4899,
+	  -2633,   1252,   2733,   1167,  -1121,  -1740,   -493,    957,   1131,
+	    137,   -778,   -716,     49,    597,    427,   -130,   -430,   -232,
+	    148,    287,    109,   -129,   -174,    -36,    104,    166,    -27,
+	      0
+   	};
+
+	for(; n>0; n-=2) {
+		state->z[63] = *(src++);
+		state->z[64] = *(src++);
+
+		int64_t t = 0;
+		for(uint_fast8_t j=0; j<63; j+=4) {
+			t += state->z[j+0] * tap[j+0];
+			t += state->z[j+1] * tap[j+1];
+			t += state->z[j+2] * tap[j+2];
+			t += state->z[j+3] * tap[j+3];
+
+			state->z[j+0] = state->z[j+0+2];
+			state->z[j+1] = state->z[j+1+2];
+			state->z[j+2] = state->z[j+2+2];
+			state->z[j+3] = state->z[j+3+2];
+		}
+		*(dst++) = t >> 16;
+	}
+}
+/*
+#include "arm_intrinsics.h"
+
+void fir_wbfm_decim_2_real_s16_s16_fast(fir_wbfm_decim_2_real_s16_s16_state_t* const state, int16_t* src, int16_t* dst, int32_t n) {
+	static const int16_t tap[] = {
+	    -27,    166,    104,    -36,   -174,   -129,    109,    287,    148,
+	   -232,   -430,   -130,    427,    597,     49,   -716,   -778,    137,
+	   1131,    957,   -493,  -1740,  -1121,   1167,   2733,   1252,  -2633,
+	  -4899,  -1336,   8210,  18660,  23254,  18660,   8210,  -1336,  -4899,
+	  -2633,   1252,   2733,   1167,  -1121,  -1740,   -493,    957,   1131,
+	    137,   -778,   -716,     49,    597,    427,   -130,   -430,   -232,
+	    148,    287,    109,   -129,   -174,    -36,    104,    166,    -27,
+	      0
+   	};
+
+	for(; n>0; n-=2) {
+		state->z[63] = *(src++);
+		state->z[64] = *(src++);
+
+		int64_t acc = 0;
+		uint32_t* z = (uint32_t*)&state->z[0];
+		uint32_t* t = (uint32_t*)&tap[0];
+		for(size_t j=0; j<63; j+=4) {
+			const uint32_t s10 = *(z++);
+			const uint32_t s32 = *(z++);
+			const uint32_t t10 = *(t++);
+			const uint32_t t32 = *(t++);
+			acc = __SMLALD(acc, s10, t10);
+			acc = __SMLALD(acc, s32, t32);
+			z[-2] = s32;
+			z[-1] = z[0];
+		}
+		*(dst++) = acc >> 16;
+	}
+}
+*/

@@ -75,4 +75,28 @@ void decimate_by_2_s16_s16(
 	int32_t n
 );
 
+typedef struct fir_cic4_decim_2_real_s16_s16_state_t {
+	int16_t z[7];
+} fir_cic4_decim_2_real_s16_s16_state_t;
+
+void fir_cic4_decim_2_real_s16_s16_init(fir_cic4_decim_2_real_s16_s16_state_t* const state);
+void fir_cic4_decim_2_real_s16_s16(
+	fir_cic4_decim_2_real_s16_s16_state_t* const state,
+	int16_t* src,
+	int16_t* dst,
+	int32_t n
+);
+
+typedef struct fir_wbfm_decim_2_real_s16_s16_state_t {
+	int16_t z[65];
+} fir_wbfm_decim_2_real_s16_s16_state_t;
+
+void fir_wbfm_decim_2_real_s16_s16_init(fir_wbfm_decim_2_real_s16_s16_state_t* const state);
+void fir_wbfm_decim_2_real_s16_s16(
+	fir_wbfm_decim_2_real_s16_s16_state_t* const state,
+	int16_t* src,
+	int16_t* dst,
+	int32_t n
+);
+
 #endif/*__DECIMATE_H__*/
