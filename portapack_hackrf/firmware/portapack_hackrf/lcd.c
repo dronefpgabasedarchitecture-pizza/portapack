@@ -24,6 +24,9 @@
 #include <libopencm3/lpc43xx/gpio.h>
 #include <libopencm3/lpc43xx/scu.h>
 
+#include "lcd.h"
+#include "font_medium_lcd.h"
+
 #define RDY_N_PORT (GPIO1)
 #define RDY_N_PIN (8)
 #define RDY_N_BIT (1 << RDY_N_PIN)
@@ -128,15 +131,138 @@ void lcd_data_write(const uint_fast8_t value) {
 	lcd_wr_pulse();
 }
 
-void lcd_data_write_rgb(const uint_fast8_t r, const uint_fast8_t g, const uint_fast8_t b) {
-	GPIO3_MPIN = (b << 8);
+void lcd_data_write_rgb(const lcd_color_t color) {
+	GPIO3_MPIN = (color.b << 8);
 	lcd_wr_pulse();
 	
-	GPIO3_MPIN = (g << 8);
+	GPIO3_MPIN = (color.g << 8);
 	lcd_wr_pulse();
 
-	GPIO3_MPIN = (r << 8);
+	GPIO3_MPIN = (color.r << 8);
 	lcd_wr_pulse();
+}
+
+void lcd_caset(const uint_fast16_t start_column, uint_fast16_t end_column) {
+	lcd_rs(0);
+	lcd_data_write(0x2a);
+	lcd_rs(1);
+	lcd_data_write(start_column >> 8);
+	lcd_data_write(start_column & 0xff);
+	lcd_data_write(end_column >> 8);
+	lcd_data_write(end_column & 0xff);
+}
+
+void lcd_paset(const uint_fast16_t start_page, const uint_fast16_t end_page) {
+	lcd_rs(0);
+	lcd_data_write(0x2b);
+	lcd_rs(1);
+	lcd_data_write(start_page >> 8);
+	lcd_data_write(start_page & 0xff);
+	lcd_data_write(end_page >> 8);
+	lcd_data_write(end_page & 0xff);
+}
+
+void lcd_ramwr_start() {
+	lcd_rs(0);
+	lcd_data_write(0x2c);
+	lcd_rs(1);
+}
+
+typedef struct lcd_context_t {
+	lcd_color_t color_background;
+	lcd_color_t color_foreground;
+	const lcd_font_t* font;
+} lcd_context_t;
+
+static lcd_context_t lcd_context = {
+	.color_background = { 0, 0, 0 },
+	.color_foreground = { 255, 255, 255 },
+	.font = &font_medium
+};
+
+static const lcd_glyph_t* lcd_get_glyph(const lcd_font_t* const font, const char c) {
+	if( (c >= font->glyph_table_start) && (c <= font->glyph_table_end) ) {
+		return &font->glyph_table[c - font->glyph_table_start];
+	} else {
+		return &font->glyph_table[0];
+	}
+}
+
+void lcd_set_font(const lcd_font_t* const font) {
+	lcd_context.font = font;
+}
+
+void lcd_set_foreground(const lcd_color_t color) {
+	lcd_context.color_foreground = color;
+}
+
+void lcd_set_background(const lcd_color_t color) {
+	lcd_context.color_background = color;
+}
+
+static void lcd_fill_rectangle_with_color(
+	const uint_fast16_t x,
+	const uint_fast16_t y,
+	const uint_fast16_t w,
+	const uint_fast16_t h,
+	const lcd_color_t color
+) {
+	lcd_caset(x, x + w - 1);
+	lcd_paset(y, y + h - 1);
+	lcd_ramwr_start();
+
+	for(uint_fast16_t ty=0; ty<h; ty++) {
+		for(uint_fast16_t tx=0; tx<w; tx++) {
+			lcd_data_write_rgb(color);
+		}
+	}
+}
+
+void lcd_fill_rectangle(
+	const uint_fast16_t x,
+	const uint_fast16_t y,
+	const uint_fast16_t w,
+	const uint_fast16_t h
+) {
+	lcd_fill_rectangle_with_color(x, y, w, h, lcd_context.color_foreground);
+}
+
+void lcd_clear_rectangle(
+	const uint_fast16_t x,
+	const uint_fast16_t y,
+	const uint_fast16_t w,
+	const uint_fast16_t h
+) {
+	lcd_fill_rectangle_with_color(x, y, w, h, lcd_context.color_background);
+}
+
+void lcd_draw_string(
+	const uint_fast16_t x,
+	const uint_fast16_t y,
+	const char* const p,
+	const uint_fast16_t len
+) {
+	const lcd_font_t* const font = lcd_context.font;
+
+	lcd_caset(x, x + font->char_advance * len - 1);
+	lcd_paset(y, y + font->char_height - 1);
+	lcd_ramwr_start();
+
+	for(uint_fast16_t y=0; y<font->char_height; y++) {
+		for(uint_fast16_t n=0; n<len; n++) {
+			const char c = p[n];
+			const lcd_glyph_t* const glyph = lcd_get_glyph(font, c);
+			uint8_t row_data = glyph->row[y];
+			for(uint_fast16_t x=0; x<font->char_advance; x++) {
+				if( row_data & 16 ) {
+					lcd_data_write_rgb(lcd_context.color_foreground);
+				} else {
+					lcd_data_write_rgb(lcd_context.color_background);
+				}
+				row_data <<= 1;
+			}
+		}
+	}
 }
 
 uint32_t lcd_data_read_switches() {
@@ -289,13 +415,7 @@ void lcd_reset() {
 	delay(100);
 
 	// Change column address range for row/column swap
-	lcd_rs(0);
-	lcd_data_write(0x2a);
-	lcd_rs(1);
-	lcd_data_write(0x00);
-	lcd_data_write(0x00);
-	lcd_data_write(0x01);
-	lcd_data_write(0x3f);
+	lcd_caset(0, 0x13f);
 
 	// Max brightness
 	lcd_rs(0);
@@ -316,9 +436,5 @@ void lcd_reset() {
 }
 
 void lcd_clear() {
-	for(int y=0; y<240; y++) {
-		for(int x=0; x<320; x++) {
-			lcd_data_write_rgb(0, 0, 0);
-		}
-	}
+	lcd_clear_rectangle(0, 0, 320, 240);
 }

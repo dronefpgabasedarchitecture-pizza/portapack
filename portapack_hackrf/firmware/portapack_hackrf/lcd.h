@@ -24,13 +24,59 @@
 
 #include <stdint.h>
 
+typedef struct lcd_color_t {
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+} lcd_color_t;
+
+typedef struct lcd_glyph_t {
+	const uint8_t* const row;
+	const uint8_t width;
+	const uint8_t height;
+	const uint8_t advance;
+} lcd_glyph_t;
+
+typedef struct lcd_font_t {
+	const uint8_t char_advance;
+	const uint8_t char_height;
+	const uint8_t line_height;
+	char glyph_table_start;
+	char glyph_table_end;
+	const lcd_glyph_t* glyph_table;
+} lcd_font_t;
+
 void lcd_init();
 void lcd_reset();
 void lcd_clear();
 
-void lcd_rs(const uint_fast8_t value);
 void lcd_data_write(const uint_fast8_t value);
-void lcd_data_write_rgb(const uint_fast8_t r, const uint_fast8_t g, const uint_fast8_t b);
+void lcd_data_write_rgb(const lcd_color_t color);
+
+void lcd_set_font(const lcd_font_t* const font);
+void lcd_set_foreground(const lcd_color_t color);
+void lcd_set_background(const lcd_color_t color);
+
+void lcd_fill_rectangle(
+	const uint_fast16_t x,
+	const uint_fast16_t y,
+	const uint_fast16_t w,
+	const uint_fast16_t h
+);
+
+void lcd_clear_rectangle(
+	const uint_fast16_t x,
+	const uint_fast16_t y,
+	const uint_fast16_t w,
+	const uint_fast16_t h
+);
+
+void lcd_draw_string(
+	const uint_fast16_t x,
+	const uint_fast16_t y,
+	const char* const p,
+	const uint_fast16_t len
+);
 
 uint32_t lcd_data_read_switches();
 

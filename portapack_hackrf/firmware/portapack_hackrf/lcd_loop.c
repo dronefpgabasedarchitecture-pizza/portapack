@@ -66,37 +66,19 @@ int main() {
 	lcd_reset();
 	lcd_clear();
 
-	lcd_rs(0);
-	lcd_data_write(0x2c);
-	lcd_rs(1);
-
 	while(1) {
 		gpio_toggle(PORT_LED1_3, PIN_LED2);
 
 		const spectrum_frame_t* const frame = &spectrum_frames->frame[spectrum_frames->read_index];
 
-		lcd_rs(0);
-		lcd_data_write(0x2c);
-		lcd_rs(1);
-		
-		for(int y=0; y<7; y++) {
-			for(int n=0; n<53; n++) {
-				const char c = header_chars[n];
-				const glyph_t* const glyph = get_glyph_medium(c);
-				uint8_t row_data = glyph->row[y];
-				for(int x=0; x<5; x++) {
-					if( row_data & 16 ) {
-						lcd_data_write_rgb(255, 255, 255);
-					} else {
-						lcd_data_write_rgb(0, 0, 0);
-					}
-					row_data <<= 1;
-				}
-				lcd_data_write_rgb(0, 0, 0);
-			}
-			lcd_data_write_rgb(0, 0, 0);
-			lcd_data_write_rgb(0, 0, 0);
-		}
+		lcd_draw_string(0, 24, header_chars, 53);
+
+		const lcd_color_t color_blue = { 0, 0, 255 };
+		const lcd_color_t color_white = { 255, 255, 255 };
+
+		lcd_set_foreground(color_blue);
+		lcd_fill_rectangle(0, 8, 320, 4);
+		lcd_set_foreground(color_white);
 		/*
 		for(int y=0; y<235; y++) {
 			for(int n=0; n<10; n++) {
@@ -113,7 +95,7 @@ int main() {
 			}
 		}
 		*/
-
+		/*
 		const int x_i_min = (int)frame->i_min + 128;
 		const int x_i_max = (int)frame->i_max + 128;
 		for(int x=0; x<320; x++) {
@@ -156,7 +138,7 @@ int main() {
 				}
 			}
 		}
-		
+		*/
 		const uint32_t switches = lcd_data_read_switches();
 		*switches_state = switches;
 /*		

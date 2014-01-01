@@ -22,8 +22,8 @@
 #ifndef __FONT_MEDIUM_LCD_H__
 #define __FONT_MEDIUM_LCD_H__
 
-#include "glyph_lcd.h"
+#include "lcd.h"
 
-const glyph_t* get_glyph_medium(const char c);
+extern lcd_font_t font_medium;
 
 #endif

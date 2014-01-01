@@ -21,7 +21,7 @@
 
 #include <stdint.h>
 
-#include "glyph_lcd.h"
+#include "lcd.h"
 
 const uint8_t font_medium_32[] = { 0b00000, 0b00000, 0b00000, 0b00000, 0b00000, 0b00000, 0b00000 };
 const uint8_t font_medium_33[] = { 0b00100, 0b00100, 0b00100, 0b00100, 0b00100, 0b00000, 0b00100 };	// !
@@ -50,7 +50,7 @@ const uint8_t font_medium_55[] = { 0b11111, 0b00001, 0b00001, 0b00010, 0b00100, 
 const uint8_t font_medium_56[] = { 0b01110, 0b10001, 0b10001, 0b01110, 0b10001, 0b10001, 0b01110 };	// 8
 const uint8_t font_medium_57[] = { 0b01110, 0b10001, 0b10001, 0b01111, 0b00001, 0b00010, 0b01100 };	// 9
 
-const glyph_t font_medium[] = {
+const lcd_glyph_t font_medium_glyphs[] = {
 	{ font_medium_32, 5, 7, 6 },
 	{ font_medium_33, 5, 7, 6 },
 	{ font_medium_34, 5, 7, 6 },
@@ -79,10 +79,12 @@ const glyph_t font_medium[] = {
 	{ font_medium_57, 5, 7, 6 },
 };
 
-const glyph_t* get_glyph_medium(const char c) {
-	if( (c >= 32) && (c < 58) ) {
-		return &font_medium[c - 32];
-	} else {
-		return &font_medium[0];
-	}
-}
+lcd_font_t font_medium = {
+	.char_advance = 6,
+	.char_height = 7,
+	.line_height = 8,
+	.glyph_table_start = ' ',
+	.glyph_table_end = '9',
+	.glyph_table = font_medium_glyphs
+};
+
