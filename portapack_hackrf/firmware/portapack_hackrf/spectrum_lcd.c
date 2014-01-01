@@ -375,9 +375,9 @@ void rx_fm_broadcast_to_audio(rx_fm_broadcast_to_audio_state_t* const state, com
 	/* 768kHz complex<int32>[N/4]
 	 * -> FIR LPF, 90kHz cut-off, max attenuation by 192kHz.
 	 * -> 768kHz complex<int32>[N/4] */
-	/*if( use_fir_filter ) {
-		fir_90k_s32_s32((complex_s32_t*)start, (complex_s32_t*)end, 512);
-	}*/
+	/* TODO: To improve adjacent channel rejection, implement complex channel filter:
+	 *		pass < +/- 100kHz, stop > +/- 200kHz
+	 */
 
 	const uint32_t channel_filter_end_time = systick_get_value();
 
