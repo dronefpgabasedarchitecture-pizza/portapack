@@ -610,18 +610,16 @@ void dma_isr() {
 
 	/* 12.288MHz
 	 * -> CPLD decimation by 4
+	 * -> 3.072MHz complex<int8>[2048] == 666.667 usec/block == 136000 cycles/sec
 	 */
-
-	/* 3.072MHz complex<int8>[2048] == 666.667 usec/block == 136000 cycles/sec */
 	
 	int16_t work[2048];
 	rx_fm_broadcast_to_audio(&rx_fm_broadcast_to_audio_state, &completed_buffer[0], 2048, work);
 
-	//am_demodulate_s32(decim4_buffer, 1024);
-
 	/* 768kHz int32[512]
 	 * -> Simple decimation by 16
-	 * -> 48kHz int32[32] */
+	 * -> 48kHz int32[32]
+	 */
 	int16_t* const audio_tx_buffer = portapack_i2s_tx_empty_buffer();
 	for(size_t i=0, j=0; i<I2S_BUFFER_SAMPLE_COUNT; i++, j++) {
 		audio_tx_buffer[i*2] = audio_tx_buffer[i*2+1] = work[j];
