@@ -54,12 +54,6 @@ static inline complex_s32_t multiply_conjugate_s16_s32(const complex_s16_t a, co
 	return result;
 }
 
-static int fm_demodulate_atan_mode = 0;
-
-void fm_demodulate_set_atan_mode(const int mode) {
-	fm_demodulate_atan_mode = mode;
-}
-
 void fm_demodulate_s32_s32_init(fm_demodulate_s32_s32_state_t* const state, const float sampling_rate, const float deviation_hz) {
 	state->z1.i = state->z1.q = 0;
 	state->k = sampling_rate / (2.0f * M_PI * deviation_hz);
