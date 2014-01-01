@@ -87,25 +87,18 @@ void fir_cic4_decim_2_real_s16_s16(
 	int32_t n
 );
 
-typedef struct fir_wbfm_decim_2_real_s16_s16_state_t {
-	int16_t z[65];
-} fir_wbfm_decim_2_real_s16_s16_state_t;
+typedef struct fir_64_decim_2_real_s16_s16_state_t {
+	const int16_t* taps;
+	int16_t z[66];
+} fir_64_decim_2_real_s16_s16_state_t;
 
-void fir_wbfm_decim_2_real_s16_s16_init(fir_wbfm_decim_2_real_s16_s16_state_t* const state);
-void fir_wbfm_decim_2_real_s16_s16(
-	fir_wbfm_decim_2_real_s16_s16_state_t* const state,
-	int16_t* src,
-	int16_t* dst,
-	int32_t n
+void fir_64_decim_2_real_s16_s16_init(
+	fir_64_decim_2_real_s16_s16_state_t* const state,
+	const int16_t* const taps
 );
 
-typedef struct fir_nbfm_decim_2_real_s16_s16_state_t {
-	int16_t z[65];
-} fir_nbfm_decim_2_real_s16_s16_state_t;
-
-void fir_nbfm_decim_2_real_s16_s16_init(fir_nbfm_decim_2_real_s16_s16_state_t* const state);
-void fir_nbfm_decim_2_real_s16_s16(
-	fir_nbfm_decim_2_real_s16_s16_state_t* const state,
+void fir_64_decim_2_real_s16_s16(
+	fir_64_decim_2_real_s16_s16_state_t* const state,
 	int16_t* src,
 	int16_t* dst,
 	int32_t n

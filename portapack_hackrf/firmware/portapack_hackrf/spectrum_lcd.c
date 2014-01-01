@@ -110,6 +110,41 @@ static volatile uint32_t duration_demodulate = 0;
 static volatile uint32_t duration_audio = 0;
 static volatile uint32_t duration_all = 0;
 
+/* Wideband audio filter */
+/* 96kHz int16_t input
+ * -> FIR filter, <15kHz (0.156fs) pass, >19kHz (0.198fs) stop
+ * -> 48kHz int16_t output, gain of 1.0 (I think).
+ * Padded to multiple of four taps for unrolled FIR code.
+ */
+static const int16_t taps_64_lp_156_198[] = {
+    -27,    166,    104,    -36,   -174,   -129,    109,    287,
+    148,   -232,   -430,   -130,    427,    597,     49,   -716,
+   -778,    137,   1131,    957,   -493,  -1740,  -1121,   1167,
+   2733,   1252,  -2633,  -4899,  -1336,   8210,  18660,  23254,
+  18660,   8210,  -1336,  -4899,  -2633,   1252,   2733,   1167,
+  -1121,  -1740,   -493,    957,   1131,    137,   -778,   -716,
+     49,    597,    427,   -130,   -430,   -232,    148,    287,
+    109,   -129,   -174,    -36,    104,    166,    -27,      0
+};
+
+/* Narrowband audio filter */
+/* 96kHz int16_t input
+ * -> FIR filter, <3kHz (0.031fs) pass, >6kHz (0.063fs) stop
+ * -> 48kHz int16_t output, gain of 1.0 (I think).
+ * Padded to multiple of four taps for unrolled FIR code.
+ */
+/* TODO: Review this filter, it's very quick and dirty. */
+static const int16_t taps_64_lp_031_063[] = {
+	  -254,    255,    244,    269,    302,    325,    325,    290,
+	   215,     99,    -56,   -241,   -442,   -643,   -820,   -950,
+	 -1009,   -974,   -828,   -558,   -160,    361,    992,   1707,
+	  2477,   3264,   4027,   4723,   5312,   5761,   6042,   6203,
+	  6042,   5761,   5312,   4723,   4027,   3264,   2477,   1707,
+	   992,    361,   -160,   -558,   -828,   -974,  -1009,   -950,
+	  -820,   -643,   -442,   -241,    -56,     99,    215,    290,
+	   325,    325,    302,    269,    244,    255,   -254,      0,
+};
+
 typedef struct rx_fm_broadcast_to_audio_state_t {
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_state_t dec_stage_1_state;
 	fir_cic3_decim_2_s16_s16_state_t dec_stage_2_state;
@@ -117,7 +152,7 @@ typedef struct rx_fm_broadcast_to_audio_state_t {
 	fir_cic4_decim_2_real_s16_s16_state_t audio_dec_1;
 	fir_cic4_decim_2_real_s16_s16_state_t audio_dec_2;
 	fir_cic4_decim_2_real_s16_s16_state_t audio_dec_3;
-	fir_wbfm_decim_2_real_s16_s16_state_t audio_dec_4;
+	fir_64_decim_2_real_s16_s16_state_t audio_dec_4;
 } rx_fm_broadcast_to_audio_state_t;
 
 static rx_fm_broadcast_to_audio_state_t rx_fm_broadcast_to_audio_state;
@@ -129,7 +164,7 @@ void rx_fm_broadcast_to_audio_init(rx_fm_broadcast_to_audio_state_t* const state
 	fir_cic4_decim_2_real_s16_s16_init(&state->audio_dec_1);
 	fir_cic4_decim_2_real_s16_s16_init(&state->audio_dec_2);
 	fir_cic4_decim_2_real_s16_s16_init(&state->audio_dec_3);
-	fir_wbfm_decim_2_real_s16_s16_init(&state->audio_dec_4);
+	fir_64_decim_2_real_s16_s16_init(&state->audio_dec_4, taps_64_lp_156_198);
 }
 
 void rx_fm_broadcast_to_audio(rx_fm_broadcast_to_audio_state_t* const state, complex_s8_t* const in, const size_t sample_count_in, void* const out) {
@@ -168,7 +203,7 @@ void rx_fm_broadcast_to_audio(rx_fm_broadcast_to_audio_state_t* const state, com
 	fir_cic4_decim_2_real_s16_s16(&state->audio_dec_2, out, out, sample_count_in / 8);
 	fir_cic4_decim_2_real_s16_s16(&state->audio_dec_3, out, out, sample_count_in / 16);
 
-	fir_wbfm_decim_2_real_s16_s16(&state->audio_dec_4, out, out, sample_count_in / 32);
+	fir_64_decim_2_real_s16_s16(&state->audio_dec_4, out, out, sample_count_in / 32);
 
 	const uint32_t audio_end_time = systick_get_value();
 
@@ -188,7 +223,7 @@ typedef struct rx_fm_narrowband_to_audio_state_t {
 	fir_cic3_decim_2_s16_s16_state_t bb_dec_5;
 	// TODO: Channel filter here.
 	fm_demodulate_s16_s16_state_t fm_demodulate;
-	fir_nbfm_decim_2_real_s16_s16_state_t audio_dec;
+	fir_64_decim_2_real_s16_s16_state_t audio_dec;
 } rx_fm_narrowband_to_audio_state_t;
 
 static rx_fm_narrowband_to_audio_state_t rx_fm_narrowband_to_audio_state;
@@ -201,7 +236,7 @@ void rx_fm_narrowband_to_audio_init(rx_fm_narrowband_to_audio_state_t* const sta
 	fir_cic3_decim_2_s16_s16_init(&state->bb_dec_5);
 	// TODO: Channel filter here.
 	fm_demodulate_s16_s16_init(&state->fm_demodulate, 96000, 2500);
-	fir_nbfm_decim_2_real_s16_s16_init(&state->audio_dec);
+	fir_64_decim_2_real_s16_s16_init(&state->audio_dec, taps_64_lp_031_063);
 }
 
 void rx_fm_narrowband_to_audio(rx_fm_narrowband_to_audio_state_t* const state, complex_s8_t* const in, const size_t sample_count_in, void* const out) {
@@ -257,7 +292,7 @@ void rx_fm_narrowband_to_audio(rx_fm_narrowband_to_audio_state_t* const state, c
 
 	const uint32_t demodulate_end_time = systick_get_value();
 
-	fir_nbfm_decim_2_real_s16_s16(&state->audio_dec, out, out, sample_count_in / 32);
+	fir_64_decim_2_real_s16_s16(&state->audio_dec, out, out, sample_count_in / 32);
 
 	const uint32_t audio_end_time = systick_get_value();
 
@@ -277,7 +312,7 @@ typedef struct rx_am_to_audio_state_t {
 	fir_cic3_decim_2_s16_s16_state_t bb_dec_5;
 	// TODO: Channel filter here.
 	// TODO: Rename NBFM filter to be more generic, so it can be shared with AM, others.
-	fir_nbfm_decim_2_real_s16_s16_state_t audio_dec;
+	fir_64_decim_2_real_s16_s16_state_t audio_dec;
 } rx_am_to_audio_state_t;
 
 static rx_am_to_audio_state_t rx_am_to_audio_state;
@@ -289,7 +324,7 @@ void rx_am_to_audio_init(rx_am_to_audio_state_t* const state) {
 	fir_cic3_decim_2_s16_s16_init(&state->bb_dec_4);
 	fir_cic3_decim_2_s16_s16_init(&state->bb_dec_5);
 	// TODO: Channel filter here.
-	fir_nbfm_decim_2_real_s16_s16_init(&state->audio_dec);
+	fir_64_decim_2_real_s16_s16_init(&state->audio_dec, taps_64_lp_031_063);
 }
 
 void rx_am_to_audio(rx_am_to_audio_state_t* const state, complex_s8_t* const in, const size_t sample_count_in, void* const out) {
@@ -345,7 +380,7 @@ void rx_am_to_audio(rx_am_to_audio_state_t* const state, complex_s8_t* const in,
 
 	const uint32_t demodulate_end_time = systick_get_value();
 
-	fir_nbfm_decim_2_real_s16_s16(&state->audio_dec, out, out, sample_count_in / 32);
+	fir_64_decim_2_real_s16_s16(&state->audio_dec, out, out, sample_count_in / 32);
 
 	const uint32_t audio_end_time = systick_get_value();
 
