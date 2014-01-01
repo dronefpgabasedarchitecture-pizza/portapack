@@ -25,6 +25,7 @@
 #include <stddef.h>
 #include <math.h>
 
+#include "complex.h"
 #include "gr_fast.h"
 #include "fxpt_atan2.h"
  
@@ -34,24 +35,6 @@ void am_demodulate_s32_s32(int32_t* src, int32_t* dst, const size_t sample_count
 		const int32_t q = *(src++);
 		*(dst++) = sqrtf(i * i + q * q);
 	}
-}
-
-static inline complex_s32_t multiply_conjugate_s32_s32(const complex_s32_t a, const complex_s32_t b) {
-	/* (a + bj) * (c + dj) = (ac - bd) + (bc + ad)j */
-	/* a = i, b = q
-	 * c = iz1, d = qz1
-	 */
-	const complex_s32_t result = { a.i * b.i + a.q * b.q, a.q * b.i - a.i * b.q };
-	return result;
-}
-
-static inline complex_s32_t multiply_conjugate_s16_s32(const complex_s16_t a, const complex_s16_t b) {
-	/* (a + bj) * (c + dj) = (ac - bd) + (bc + ad)j */
-	/* a = i, b = q
-	 * c = iz1, d = qz1
-	 */
-	const complex_s32_t result = { a.i * b.i + a.q * b.q, a.q * b.i - a.i * b.q };
-	return result;
 }
 
 void fm_demodulate_s32_s32_init(fm_demodulate_s32_s32_state_t* const state, const float sampling_rate, const float deviation_hz) {

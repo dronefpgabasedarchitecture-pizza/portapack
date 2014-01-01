@@ -44,4 +44,22 @@ typedef struct complex_s8_t {
 	int8_t q;
 } complex_s8_t;
 
+static inline complex_s32_t multiply_conjugate_s32_s32(const complex_s32_t a, const complex_s32_t b) {
+	/* (a + bj) * (c + dj) = (ac - bd) + (bc + ad)j */
+	/* a = i, b = q
+	 * c = iz1, d = qz1
+	 */
+	const complex_s32_t result = { a.i * b.i + a.q * b.q, a.q * b.i - a.i * b.q };
+	return result;
+}
+
+static inline complex_s32_t multiply_conjugate_s16_s32(const complex_s16_t a, const complex_s16_t b) {
+	/* (a + bj) * (c + dj) = (ac - bd) + (bc + ad)j */
+	/* a = i, b = q
+	 * c = iz1, d = qz1
+	 */
+	const complex_s32_t result = { a.i * b.i + a.q * b.q, a.q * b.i - a.i * b.q };
+	return result;
+}
+
 #endif/*__COMPLEX_H__*/
