@@ -115,10 +115,10 @@ static int test_decimate_by_2_s16_s16() {
 
 	decimate_by_2_s16_s16_state_t state;
 	decimate_by_2_s16_s16_init(&state);
-	decimate_by_2_s16_s16(&state, &data[ 0], &data[ 4], &data[ 0]);
-	decimate_by_2_s16_s16(&state, &data[ 4], &data[ 8], &data[ 2]);
-	decimate_by_2_s16_s16(&state, &data[ 8], &data[20], &data[ 4]);
-	decimate_by_2_s16_s16(&state, &data[20], &data[32], &data[10]);
+	decimate_by_2_s16_s16(&state, &data[ 0], &data[ 4], 4);
+	decimate_by_2_s16_s16(&state, &data[ 4], &data[ 8], 4);
+	decimate_by_2_s16_s16(&state, &data[ 8], &data[20], 16);
+	decimate_by_2_s16_s16(&state, &data[20], &data[32], 12);
 
 	const complex_s16_t expected_result[] = {
 		{  -437,   790 }, { -1162,   312 }, { -1579, -1116 }, {    75,  -273 },

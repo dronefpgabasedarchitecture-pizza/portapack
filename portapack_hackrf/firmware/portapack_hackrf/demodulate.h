@@ -43,7 +43,7 @@ typedef struct fm_demodulate_s16_s16_state_t {
 } fm_demodulate_s16_s16_state_t;
 
 void fm_demodulate_s16_s16_init(fm_demodulate_s16_s16_state_t* const state, const float sampling_rate, const float deviation_hz);
-void fm_demodulate_s16_s16_atan(fm_demodulate_s16_s16_state_t* const state, const complex_s16_t* const start, const complex_s16_t* const end, int16_t* dst);
+void fm_demodulate_s16_s16_atan(fm_demodulate_s16_s16_state_t* const state, const complex_s16_t* const src, int16_t* dst, int32_t n);
 
 void fm_demodulate_set_atan_mode(const int mode);
 

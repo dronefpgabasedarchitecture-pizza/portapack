@@ -92,7 +92,7 @@ void fm_demodulate_s16_s16_atan(fm_demodulate_s16_s16_state_t* const state, cons
 	complex_s16_t z1 = state->z1;
 	//const int32_t decimation_rate = 1;
 	//const float k = state->k * 4096.0f / decimation_rate;
-	const complex_s16_t* p = start;
+	const complex_s16_t* p = src;
 	for(; n>0; n-=1) {
 		const complex_s16_t s = *(p++);
 		const complex_s32_t t = multiply_conjugate_s16_s32(s, z1);
