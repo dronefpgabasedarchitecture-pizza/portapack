@@ -410,7 +410,7 @@ void set_rx_mode() {
 
 	rx_fm_broadcast_to_audio_init(&rx_fm_broadcast_to_audio_state);
 }
-
+#if 0
 typedef struct rx_fm_narrowband_to_audio_state_t {
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_state_t bb_dec_1;
 	decimate_by_2_s16_s16_state_t bb_dec_2;
@@ -484,7 +484,7 @@ void rx_fm_narrowband_to_audio() {
 
 	duration_all = systick_difference(start_time, audio_end_time);
 }
-
+#endif
 //#include "decimate_test.h"
 
 void spectrum_init() {
