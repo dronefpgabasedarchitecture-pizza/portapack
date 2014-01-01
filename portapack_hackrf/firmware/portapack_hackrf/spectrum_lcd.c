@@ -160,7 +160,7 @@ void rx_fm_broadcast_to_audio(rx_fm_broadcast_to_audio_state_t* const state, com
 	/* 768kHz complex<int32>[N/4]
 	 * -> FM demodulation
 	 * -> 768kHz int32[N/4] */
-	fm_demodulate_s16_s16_atan(&state->fm_demodulate_state, out, out, sample_count_in / 4);
+	fm_demodulate_s16_s16(&state->fm_demodulate_state, out, out, sample_count_in / 4);
 
 	const uint32_t demodulate_end_time = systick_get_value();
 
@@ -253,7 +253,7 @@ void rx_fm_narrowband_to_audio(rx_fm_narrowband_to_audio_state_t* const state, c
 
 	const uint32_t channel_filter_end_time = systick_get_value();
 
-	fm_demodulate_s16_s16_atan(&state->fm_demodulate, out, out, sample_count_in / 32);
+	fm_demodulate_s16_s16(&state->fm_demodulate, out, out, sample_count_in / 32);
 
 	const uint32_t demodulate_end_time = systick_get_value();
 

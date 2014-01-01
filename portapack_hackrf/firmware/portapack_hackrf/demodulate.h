@@ -27,7 +27,11 @@
 
 #include "complex.h"
 
-void am_demodulate_s32_s32(int32_t* src, int32_t* dst, const size_t sample_count);
+void am_demodulate_s16_s16(
+	complex_s16_t* src,
+	int16_t* dst,
+	int32_t n
+);
 
 typedef struct fm_demodulate_s32_s32_state_t {
 	complex_s32_t z1;
@@ -35,7 +39,12 @@ typedef struct fm_demodulate_s32_s32_state_t {
 } fm_demodulate_s32_s32_state_t;
 
 void fm_demodulate_s32_s32_init(fm_demodulate_s32_s32_state_t* const state, const float sampling_rate, const float deviation_hz);
-void fm_demodulate_s32_s32_atan(fm_demodulate_s32_s32_state_t* const state, const complex_s32_t* const start, const complex_s32_t* const end, int32_t* dst);
+void fm_demodulate_s32_s32(
+	fm_demodulate_s32_s32_state_t* const state,
+	const complex_s32_t* const src,
+	int32_t* dst,
+	int32_t n
+);
 
 typedef struct fm_demodulate_s16_s16_state_t {
 	complex_s16_t z1;
@@ -43,8 +52,11 @@ typedef struct fm_demodulate_s16_s16_state_t {
 } fm_demodulate_s16_s16_state_t;
 
 void fm_demodulate_s16_s16_init(fm_demodulate_s16_s16_state_t* const state, const float sampling_rate, const float deviation_hz);
-void fm_demodulate_s16_s16_atan(fm_demodulate_s16_s16_state_t* const state, const complex_s16_t* const src, int16_t* dst, int32_t n);
-
-void fm_demodulate_set_atan_mode(const int mode);
+void fm_demodulate_s16_s16(
+	fm_demodulate_s16_s16_state_t* const state,
+	const complex_s16_t* const src,
+	int16_t* dst,
+	int32_t n
+);
 
 #endif/*__DEMODULATE_H__*/

@@ -28,11 +28,11 @@
 #include "complex.h"
 #include "fxpt_atan2.h"
  
-void am_demodulate_s32_s32(int32_t* src, int32_t* dst, const size_t sample_count) {
-	for(size_t n=0; n<sample_count; n++) {
-		const int32_t i = *(src++);
-		const int32_t q = *(src++);
-		*(dst++) = sqrtf(i * i + q * q);
+void am_demodulate_s16_s16(complex_s16_t* src, int16_t* dst, int32_t n) {
+	for(; n>0; n-=1) {
+		const complex_s16_t s = *(src++);
+		const int32_t t = s.i * s.i + s.q * s.q;
+		*(dst++) = sqrtf((float)t);
 	}
 }
 
@@ -41,13 +41,18 @@ void fm_demodulate_s32_s32_init(fm_demodulate_s32_s32_state_t* const state, cons
 	state->k = sampling_rate / (2.0f * M_PI * deviation_hz);
 }
 
-void fm_demodulate_s32_s32_atan(fm_demodulate_s32_s32_state_t* const state, const complex_s32_t* const start, const complex_s32_t* const end, int32_t* dst) {
+void fm_demodulate_s32_s32(
+	fm_demodulate_s32_s32_state_t* const state,
+	const complex_s32_t* const src,
+	int32_t* dst,
+	int32_t n
+) {
 	complex_s32_t z1 = state->z1;
 	// TODO: Gain compensation based on ratio of sampling rate and deviation?
 	//const int32_t decimation_rate = 1;
 	//const float k = state->k * 4096.0f / decimation_rate;
-	const complex_s32_t* p = start;
-	while(p < (complex_s32_t*)end) {
+	const complex_s32_t* p = src;
+	for(; n>0; n-=1) {
 		const complex_s32_t s = *(p++);
 		const complex_s32_t t = multiply_conjugate_s32_s32(s, z1);
 		z1 = s;
@@ -61,7 +66,12 @@ void fm_demodulate_s16_s16_init(fm_demodulate_s16_s16_state_t* const state, cons
 	state->k = sampling_rate / (2.0f * M_PI * deviation_hz);
 }
 
-void fm_demodulate_s16_s16_atan(fm_demodulate_s16_s16_state_t* const state, const complex_s16_t* const src, int16_t* dst, int32_t n) {
+void fm_demodulate_s16_s16(
+	fm_demodulate_s16_s16_state_t* const state,
+	const complex_s16_t* const src,
+	int16_t* dst,
+	int32_t n
+) {
 	complex_s16_t z1 = state->z1;
 	// TODO: Gain compensation based on ratio of sampling rate and deviation?
 	//const int32_t decimation_rate = 1;
