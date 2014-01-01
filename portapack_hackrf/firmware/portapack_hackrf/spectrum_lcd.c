@@ -361,8 +361,6 @@ void rx_fm_broadcast_to_audio(rx_fm_broadcast_to_audio_state_t* const state, com
 	complex_s16_t* const dec_1_out_end = &dec_1_out_start[sample_count_in / 2];
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16(&state->dec_stage_1_state, dec_1_in_start, dec_1_in_end);
 
-	const uint32_t decimate_1_end_time = systick_get_value();
-
 	/* 1.544MHz complex<int16>[N/2]
 	 * -> 3rd order CIC decimation by 2, gain of 8
 	 * -> 768kHz complex<int16>[N/4] */
@@ -370,7 +368,7 @@ void rx_fm_broadcast_to_audio(rx_fm_broadcast_to_audio_state_t* const state, com
 	complex_s16_t* const dec_2_out = (complex_s16_t*)out;
 	decimate_by_2_s16_s16(&state->dec_stage_2_state, dec_2_in, dec_2_out, sample_count_in / 2);
 
-	const uint32_t decimate_2_end_time = systick_get_value();
+	const uint32_t decimate_end_time = systick_get_value();
 
 	/* 768kHz complex<int32>[N/4]
 	 * -> FIR LPF, 90kHz cut-off, max attenuation by 192kHz.
