@@ -358,7 +358,6 @@ void rx_fm_broadcast_to_audio(rx_fm_broadcast_to_audio_state_t* const state, com
 	complex_s8_t* const dec_1_in_start = in;
 	complex_s8_t* const dec_1_in_end = &dec_1_in_start[sample_count_in];
 	complex_s16_t* const dec_1_out_start = (complex_s16_t*)dec_1_in_start;
-	complex_s16_t* const dec_1_out_end = &dec_1_out_start[sample_count_in / 2];
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16(&state->dec_stage_1_state, dec_1_in_start, dec_1_in_end);
 
 	/* 1.544MHz complex<int16>[N/2]
