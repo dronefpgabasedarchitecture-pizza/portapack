@@ -1,0 +1,8 @@
+.DS_Store
+*.bin
+*.elf
+*.hex
+*.list
+*.srec
+*-cache.lib
+*.kicad_pcb-bak
