@@ -132,8 +132,6 @@ void rx_fm_broadcast_to_audio_init(rx_fm_broadcast_to_audio_state_t* const state
 	fir_wbfm_decim_2_real_s16_s16_init(&state->audio_dec_4);
 }
 
-//static int use_fir_filter = 1;
-
 void rx_fm_broadcast_to_audio(rx_fm_broadcast_to_audio_state_t* const state, complex_s8_t* const in, const size_t sample_count_in, void* const out) {
 	const uint32_t start_time = systick_get_value();
 
@@ -376,19 +374,6 @@ void handle_joysticks() {
 			max2837_set_lna_gain((uint32_t)lna_gain);	/* 8dB increments */
 		}
 	}
-/*
-	if( *switches_state & SWITCH_S1_SELECT ) {
-		fm_demodulate_set_atan_mode(1);
-	} else {
-		fm_demodulate_set_atan_mode(0);
-	}
-
-	if( *switches_state & SWITCH_S2_SELECT ) {
-		use_fir_filter = 0;
-	} else {
-		use_fir_filter = 1;
-	}
-*/
 }
 
 static volatile uint32_t sample_frame_count = 0;
