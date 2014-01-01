@@ -363,15 +363,12 @@ void rx_fm_broadcast_to_audio(rx_fm_broadcast_to_audio_state_t* const state, com
 	 * -> 1.544MHz complex<int16>[N/2] */
 	complex_s8_t* const dec_1_in_start = in;
 	complex_s8_t* const dec_1_in_end = &dec_1_in_start[sample_count_in];
-	complex_s16_t* const dec_1_out_start = (complex_s16_t*)dec_1_in_start;
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16(&state->dec_stage_1_state, dec_1_in_start, dec_1_in_end);
 
 	/* 1.544MHz complex<int16>[N/2]
 	 * -> 3rd order CIC decimation by 2, gain of 8
 	 * -> 768kHz complex<int16>[N/4] */
-	complex_s16_t* const dec_2_in = dec_1_out_start;
-	complex_s16_t* const dec_2_out = (complex_s16_t*)out;
-	decimate_by_2_s16_s16(&state->dec_stage_2_state, dec_2_in, dec_2_out, sample_count_in / 2);
+	decimate_by_2_s16_s16(&state->dec_stage_2_state, (complex_s16_t*)in, out, sample_count_in / 2);
 
 	const uint32_t decimate_end_time = systick_get_value();
 
@@ -387,9 +384,7 @@ void rx_fm_broadcast_to_audio(rx_fm_broadcast_to_audio_state_t* const state, com
 	/* 768kHz complex<int32>[N/4]
 	 * -> FM demodulation
 	 * -> 768kHz int32[N/4] */
-	complex_s16_t* const demodulate_in = dec_2_out;
-	int16_t* const demodulate_out = (int16_t*)demodulate_in;
-	fm_demodulate_s16_s16_atan(&state->fm_demodulate_state, demodulate_in, demodulate_out, sample_count_in / 4);
+	fm_demodulate_s16_s16_atan(&state->fm_demodulate_state, out, out, sample_count_in / 4);
 
 	const uint32_t demodulate_end_time = systick_get_value();
 
