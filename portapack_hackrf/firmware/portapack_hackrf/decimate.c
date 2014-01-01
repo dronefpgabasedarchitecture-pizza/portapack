@@ -469,3 +469,53 @@ void fir_wbfm_decim_2_real_s16_s16_fast(fir_wbfm_decim_2_real_s16_s16_state_t* c
 	}
 }
 */
+void fir_nbfm_decim_2_real_s16_s16_init(fir_nbfm_decim_2_real_s16_s16_state_t* const state) {
+	for(uint_fast8_t i=0; i<65; i++) {
+		state->z[i] = 0;
+	}
+}
+
+void fir_nbfm_decim_2_real_s16_s16(
+	fir_nbfm_decim_2_real_s16_s16_state_t* const state,
+	int16_t* src,
+	int16_t* dst,
+	int32_t n
+) {
+	/* Narrowband FM audio filter with decimation */
+
+	/* 96kHz int16_t input (sample count "n" must be multiple of 4)
+	 * -> FIR filter, 0 - 3kHz pass, 6kHz to Nyquist stop
+	 * -> 48kHz int16_t output, gain of 1.0 (I think).
+	 */
+
+	/* TODO: Review this filter, it's very quick and dirty. */
+	static const int16_t tap[] = {
+		  -254,    255,    244,    269,    302,    325,    325,    290,
+		   215,     99,    -56,   -241,   -442,   -643,   -820,   -950,
+		 -1009,   -974,   -828,   -558,   -160,    361,    992,   1707,
+		  2477,   3264,   4027,   4723,   5312,   5761,   6042,   6203,
+		  6042,   5761,   5312,   4723,   4027,   3264,   2477,   1707,
+		   992,    361,   -160,   -558,   -828,   -974,  -1009,   -950,
+		  -820,   -643,   -442,   -241,    -56,     99,    215,    290,
+		   325,    325,    302,    269,    244,    255,   -254
+   	};
+
+	for(; n>0; n-=2) {
+		state->z[63] = *(src++);
+		state->z[64] = *(src++);
+
+		int64_t t = 0;
+		for(uint_fast8_t j=0; j<63; j+=4) {
+			t += state->z[j+0] * tap[j+0];
+			t += state->z[j+1] * tap[j+1];
+			t += state->z[j+2] * tap[j+2];
+			t += state->z[j+3] * tap[j+3];
+
+			state->z[j+0] = state->z[j+0+2];
+			state->z[j+1] = state->z[j+1+2];
+			state->z[j+2] = state->z[j+2+2];
+			state->z[j+3] = state->z[j+3+2];
+		}
+		*(dst++) = t >> 16;
+	}
+}
