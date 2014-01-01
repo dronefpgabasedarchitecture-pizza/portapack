@@ -32,13 +32,17 @@ void decimate_by_2_s8_s16_init(decimate_by_2_s8_s16_state_t* const state) {
 	state->q = 0;
 }
 
-void decimate_by_2_s8_s16(decimate_by_2_s8_s16_state_t* const state, void* const start, void* const end) {
+void decimate_by_2_s8_s16(
+	decimate_by_2_s8_s16_state_t* const state,
+	complex_s8_t* const src_and_dst,
+	int32_t n
+) {
 	uint32_t i = state->i;
 	uint32_t q = state->q;
 	uint32_t taps = 0x00030001;
-	uint32_t* p = (uint32_t*)start;
+	uint32_t* p = (uint32_t*)src_and_dst;
 	uint32_t t1, t2, t3, t4;
-	while(p < (uint32_t*)end) {
+	for(; n>0; n-=8) {
 		t1 = *(p++);				/* 3: t1 = Q3:I3:Q2:I2 */
 		t2 = *(p++);				/*    t2 = Q5:I5:Q4:I4 */
 								
@@ -107,8 +111,8 @@ void decimate_by_2_s16_s32_init(decimate_by_2_s16_s32_state_t* const state) {
 
 void decimate_by_2_s16_s32(
 	decimate_by_2_s16_s32_state_t* const state,
-	complex_s16_t* const start,
-	complex_s16_t* const end
+	complex_s16_t* const src_and_dst,
+	int32_t n
 ) {
 	/* Complex non-recursive 3rd-order CIC filter (taps 1,3,3,1).
 	 * Gain of 8.
@@ -120,9 +124,9 @@ void decimate_by_2_s16_s32(
 	uint32_t t2 = state->iq1;
 	uint32_t t3, t4;
 	uint32_t taps = 0x00000003;
-	uint32_t* p = (uint32_t*)start;
+	uint32_t* p = (uint32_t*)src_and_dst;
 	uint32_t i, q;
-	while(p < (uint32_t*)end) {
+	for(; n>0; n-=4) {
 		i = __SXTH(t1, 0);			/* 1: I0 */
 		q = __SXTH(t1, 16);			/* 1: Q0 */
 		i = __SMLABB(t2, taps, i);	/* 1: I1*3 + I0 */
@@ -273,8 +277,8 @@ void translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_init(translate_fs_over_4
 
 void translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16(
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_state_t* const state,
-	complex_s8_t* const start,
-	complex_s8_t* const end
+	complex_s8_t* const src_and_dst,
+	int32_t n
 ) {
 	/* Translates incoming complex<int8_t> samples by -fs/4,
 	 * decimates by two using a non-recursive third-order CIC filter.
@@ -311,8 +315,8 @@ void translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16(
 	uint32_t q1_i0 = state->q1_i0;
 	uint32_t q0_i1 = state->q0_i1;
 	uint32_t k_3_1 = 0x00030001;
-	uint32_t* p = (uint32_t*)start;
-	while(p < (uint32_t*)end) {
+	uint32_t* p = (uint32_t*)src_and_dst;
+	for(; n>0; n-=4) {
 		const uint32_t q3_i3_q2_i2 = p[0];							// 3
 		const uint32_t q5_i5_q4_i4 = p[1];
 

@@ -34,8 +34,8 @@ typedef struct translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_state_t {
 void translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_init(translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_state_t* const state);
 void translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16(
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_state_t* const state,
-	complex_s8_t* const start,
-	complex_s8_t* const end
+	complex_s8_t* const src_and_dst,
+	int32_t n
 );
 
 typedef struct decimate_by_2_s8_s16_state_t {
@@ -44,7 +44,11 @@ typedef struct decimate_by_2_s8_s16_state_t {
 } decimate_by_2_s8_s16_state_t;
 
 void decimate_by_2_s8_s16_init(decimate_by_2_s8_s16_state_t* const state);
-void decimate_by_2_s8_s16(decimate_by_2_s8_s16_state_t* const state, void* const start, void* const end);
+void decimate_by_2_s8_s16(
+	decimate_by_2_s8_s16_state_t* const state,
+	complex_s8_t* const src_and_dst,
+	int32_t n
+);
 
 typedef struct decimate_by_2_s16_s32_state_t {
 	uint32_t iq0;
@@ -54,8 +58,8 @@ typedef struct decimate_by_2_s16_s32_state_t {
 void decimate_by_2_s16_s32_init(decimate_by_2_s16_s32_state_t* const state);
 void decimate_by_2_s16_s32(
 	decimate_by_2_s16_s32_state_t* const state,
-	complex_s16_t* const start,
-	complex_s16_t* const end
+	complex_s16_t* const src_and_dst,
+	int32_t n
 );
 
 typedef struct decimate_by_2_s16_s16_state_t {

@@ -53,10 +53,10 @@ static int test_translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16() {
 
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_state_t state;
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_init(&state);
-	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16(&state, &data[ 0], &data[16]);
-	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16(&state, &data[16], &data[28]);
-	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16(&state, &data[28], &data[36]);
-	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16(&state, &data[36], &data[64]);
+	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16(&state, &data[ 0], 16);
+	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16(&state, &data[16], 12);
+	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16(&state, &data[28],  8);
+	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16(&state, &data[36], 28);
 
 	const complex_s16_t expected_result[] = {
 		{   -53,   198 }, {  -278,   196 }, {    12,   -90 }, {  -311,  -204 },
@@ -86,10 +86,10 @@ static int test_decimate_by_2_s16_s32() {
 
 	decimate_by_2_s16_s32_state_t state;
 	decimate_by_2_s16_s32_init(&state);
-	decimate_by_2_s16_s32(&state, &data[ 0], &data[ 4]);
-	decimate_by_2_s16_s32(&state, &data[ 4], &data[ 8]);
-	decimate_by_2_s16_s32(&state, &data[ 8], &data[20]);
-	decimate_by_2_s16_s32(&state, &data[20], &data[32]);
+	decimate_by_2_s16_s32(&state, &data[ 0],  4);
+	decimate_by_2_s16_s32(&state, &data[ 4],  4);
+	decimate_by_2_s16_s32(&state, &data[ 8], 12);
+	decimate_by_2_s16_s32(&state, &data[20], 12);
 
 	const complex_s32_t expected_result[] = {
 		{  -437,   790 }, { -1162,   312 }, { -1579, -1116 }, {    75,  -273 },
@@ -115,10 +115,10 @@ static int test_decimate_by_2_s16_s16() {
 
 	decimate_by_2_s16_s16_state_t state;
 	decimate_by_2_s16_s16_init(&state);
-	decimate_by_2_s16_s16(&state, &data[ 0], &data[ 4], 4);
-	decimate_by_2_s16_s16(&state, &data[ 4], &data[ 8], 4);
-	decimate_by_2_s16_s16(&state, &data[ 8], &data[20], 16);
-	decimate_by_2_s16_s16(&state, &data[20], &data[32], 12);
+	decimate_by_2_s16_s16(&state, &data[ 0], &data[ 0],  4);
+	decimate_by_2_s16_s16(&state, &data[ 4], &data[ 2],  4);
+	decimate_by_2_s16_s16(&state, &data[ 8], &data[ 4], 16);
+	decimate_by_2_s16_s16(&state, &data[20], &data[10], 12);
 
 	const complex_s16_t expected_result[] = {
 		{  -437,   790 }, { -1162,   312 }, { -1579, -1116 }, {    75,  -273 },
