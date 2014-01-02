@@ -504,6 +504,8 @@ void dma_isr() {
 static const float cycles_per_baseband_block = (2048.0f / 3072000.0f) * 204000000.0f;
 
 void spectrum_run() {
+	// Dumb delay now that M0 and M4 are no longer synchronizing.
+	delay(500000);
 
 	handle_joysticks();
 
