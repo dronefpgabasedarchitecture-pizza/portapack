@@ -22,4 +22,7 @@
 #ifndef __PORTAPACK_H__
 #define __PORTAPACK_H__
 
+void portapack_init();
+void portapack_run();
+
 #endif/*__PORTAPACK_H__*/

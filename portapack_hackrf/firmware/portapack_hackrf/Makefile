@@ -72,9 +72,7 @@ SRC_M4_C = \
 ifeq ($(ADDON),PORTAPACK)
 	SRC_M4_C += fft.c
 	SRC_M4_C += lcd.c
-	SRC_M4_C += spectrum.c
 	SRC_M4_C += main.c
-	SRC_M4_C += spectrum_lcd.c
 	SRC_M4_C += portapack.c
 	SRC_M4_C += portapack_audio.c
 	SRC_M4_C += portapack_i2s.c

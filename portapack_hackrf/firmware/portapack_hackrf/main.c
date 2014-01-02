@@ -37,7 +37,7 @@
 #include <usb_api_spiflash.h>
 #include <usb_api_transceiver.h>
 
-#include "spectrum.h"
+#include "portapack.h"
 
 static const usb_request_handler_fn vendor_request_handler[] = {
 	NULL,
@@ -178,10 +178,10 @@ int main(void) {
 
 	/////////////////////////////////////////////////////////////
 
-	spectrum_init();
+	portapack_init();
 	
 	while(true) {
-		spectrum_run();
+		portapack_run();
 	}
 
 	return 0;
