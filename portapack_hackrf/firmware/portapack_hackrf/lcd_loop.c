@@ -54,7 +54,7 @@ static void draw_field_mhz(int64_t value, const char* const format, uint_fast16_
 	char temp[80];
 	const size_t temp_len = 79;
 	const int32_t value_mhz = value / 1000000;
-	const int32_t value_hz = value - (value_mhz * 1000000);
+	const int32_t value_hz = (value - (value_mhz * 1000000)) / 1000;
 	const size_t text_len = snprintf(temp, temp_len, format, value_mhz, value_hz);
 	lcd_draw_string(x, y, temp, min(text_len, temp_len));
 }
