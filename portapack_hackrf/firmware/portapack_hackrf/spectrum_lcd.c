@@ -68,38 +68,6 @@ static int8_t* sample_buffer_1 = (int8_t*)0x20008000;
 
 static gpdma_lli_t lli_rx[2];
 
-void spectrum_frame_clear(spectrum_frame_t* const frame) {
-	frame->sample_count = 0;
-	frame->i_min = frame->q_min = 0;
-	frame->i_max = frame->q_max = 0;
-	for(int i=0; i<320; i++) {
-		frame->bin[i].sum = 0;
-		frame->bin[i].peak = 0;
-	}
-}
-
-void spectrum_frames_clear() {
-	for(size_t i=0; i<2; i++) {
-		spectrum_frame_clear(&spectrum_frames->frame[i]);
-	}
-}
-
-void spectrum_frames_init() {
-	spectrum_frames_clear();
-	spectrum_frames->write_index = 0;
-	spectrum_frames->read_index = 1;
-}
-
-void spectrum_frames_wait_for_sync() {
-	spectrum_frames->sync = 1;
-	while( spectrum_frames->sync );
-}
-
-void spectrum_frames_swap() {
-	spectrum_frames->read_index = 1 - spectrum_frames->read_index;
-	spectrum_frames->write_index = 1 - spectrum_frames->write_index;
-}
-
 uint32_t systick_difference(const uint32_t t1, const uint32_t t2) {
 	return (t1 - t2) & 0xffffff;
 }
@@ -430,11 +398,7 @@ void spectrum_init() {
 	max2837_set_lna_gain(24);	/* 8dB increments */
 	max2837_set_vga_gain(16);	/* 2dB increments, up to 62dB */
 	
-	for(size_t i=0; i<header_chars_length; i++) {
-		header_chars[i] = ' ';
-	}
 
-	spectrum_frames_init();
 
 	m0_load_code_from_m4_text();
 	m0_run();
@@ -483,8 +447,6 @@ void handle_joysticks() {
 	if( increment != 0 ) {
 		increment_frequency(increment * 25000);
 	}
-
-	spectrum_frames_swap();
 
 	if( *switches_state & SWITCH_S2_UP ) {
 		if( lna_gain < 40.0f ) {
@@ -536,25 +498,7 @@ void dma_isr() {
 static const float cycles_per_baseband_block = (2048.0f / 3072000.0f) * 204000000.0f;
 
 void spectrum_run() {
-	spectrum_frame_t* frame = &spectrum_frames->frame[spectrum_frames->write_index];
-
-	frame->sample_count += 1;
-	spectrum_frames_wait_for_sync();
-
-	const float percent_used = (float)duration_all / cycles_per_baseband_block * 100.0f;
-	sprintf(header_chars, "%4d.%03d %05lu %05lu %05lu %05lu %05lu %5.2f",
-		(int)(target_frequency / 1000000),
-		(int)((target_frequency % 1000000) / 1000),
-		duration_decimate,
-		duration_channel_filter,
-		duration_demodulate,
-		duration_audio,
-		duration_all,
-		percent_used
-	);
 
 	handle_joysticks();
 
-	frame = &spectrum_frames->frame[spectrum_frames->write_index];
-	spectrum_frame_clear(frame);
 }

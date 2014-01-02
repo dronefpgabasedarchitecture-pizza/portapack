@@ -25,29 +25,7 @@
 #include <stdint.h>
 #include <fcntl.h>
 
-char* const header_chars = (char*)0x10091000;
-const size_t header_chars_length = 54;
 uint32_t* const switches_state = (uint32_t*)0x100910fc;
 
-typedef struct {
-	int16_t sum;
-	int16_t peak;
-} spectrum_bin_t;
-
-typedef struct {
-	spectrum_bin_t bin[320];
-	volatile uint32_t sample_count;
-	volatile int32_t i_min, i_max;
-	volatile int32_t q_min, q_max;
-} spectrum_frame_t;
-
-typedef struct {
-	spectrum_frame_t frame[2];
-	volatile uint32_t write_index;
-	volatile uint32_t read_index;
-	volatile uint32_t sync;
-} spectrum_frames_t;
-
-spectrum_frames_t* const spectrum_frames = (spectrum_frames_t*)0x10091100;
 
 #endif
