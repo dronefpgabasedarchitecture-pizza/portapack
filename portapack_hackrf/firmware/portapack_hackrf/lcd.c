@@ -216,6 +216,12 @@ void lcd_set_background(const lcd_color_t color) {
 	lcd_context.color_background = color;
 }
 
+void lcd_colors_invert() {
+	const lcd_color_t temp = lcd_context.color_background;
+	lcd_context.color_background = lcd_context.color_foreground;
+	lcd_context.color_foreground = temp;
+}
+
 static void lcd_fill_rectangle_with_color(
 	const uint_fast16_t x,
 	const uint_fast16_t y,

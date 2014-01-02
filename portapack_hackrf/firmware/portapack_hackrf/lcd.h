@@ -60,6 +60,7 @@ void lcd_data_write_rgb(const lcd_color_t color);
 void lcd_set_font(const lcd_font_t* const font);
 void lcd_set_foreground(const lcd_color_t color);
 void lcd_set_background(const lcd_color_t color);
+void lcd_colors_invert();
 
 void lcd_fill_rectangle(
 	const uint_fast16_t x,

@@ -74,14 +74,12 @@ int main() {
 	lcd_reset();
 
 	lcd_set_background(color_blue);
+	lcd_set_foreground(color_white);
 	lcd_clear();
 
-	lcd_set_background(color_white);
-	lcd_set_foreground(color_blue);
+	lcd_colors_invert();
 	lcd_draw_string(0, 0, "HackRF PortaPack", 16);
-
-	lcd_set_background(color_blue);
-	lcd_set_foreground(color_white);
+	lcd_colors_invert();
 
 	while(1) {
 		gpio_toggle(PORT_LED1_3, PIN_LED2);
@@ -91,17 +89,16 @@ int main() {
 		draw_field_int(device_state->if_gain_db,  "IF  %2d dB",      0, 80);
 		draw_field_int(device_state->bb_gain_db,  "BB  %2d dB",      0, 96);
 
-		lcd_set_background(color_white);
-		lcd_set_foreground(color_blue);
+		lcd_colors_invert();
 		lcd_draw_string(0, 128, "Cycle Count ", 12);
-		lcd_set_background(color_blue);
-		lcd_set_foreground(color_white);
+		lcd_colors_invert();
+		
 		draw_field_int(device_state->duration_decimate,       "Decim %6d", 0, 144);
 		draw_field_int(device_state->duration_channel_filter, "Chan  %6d", 0, 160);
 		draw_field_int(device_state->duration_demodulate,     "Demod %6d", 0, 176);
 		draw_field_int(device_state->duration_audio,          "Audio %6d", 0, 192);
 		draw_field_int(device_state->duration_all,            "Total %6d", 0, 208);
-		draw_field_percent(device_state->duration_all_millipercent, "CPU %3d.%03d%%", 0, 224);
+		draw_field_percent(device_state->duration_all_millipercent, "CPU   %3d.%01d%%", 0, 224);
 
 		const uint32_t switches = lcd_data_read_switches();
 		*switches_state = switches;
