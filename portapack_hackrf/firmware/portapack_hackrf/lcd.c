@@ -256,14 +256,13 @@ void lcd_draw_string(
 		for(uint_fast16_t n=0; n<len; n++) {
 			const char c = p[n];
 			const lcd_glyph_t* const glyph = lcd_get_glyph(font, c);
-			uint8_t row_data = glyph->row[y];
-			for(uint_fast16_t x=0; x<font->char_advance; x++) {
-				if( row_data & 16 ) {
+			uint32_t row_data = glyph->row[y];
+			for(uint_fast16_t x=glyph->advance; x>0; x--) {
+				if( (row_data >> (x-1)) & 1 ) {
 					lcd_data_write_rgb(lcd_context.color_foreground);
 				} else {
 					lcd_data_write_rgb(lcd_context.color_background);
 				}
-				row_data <<= 1;
 			}
 		}
 	}
