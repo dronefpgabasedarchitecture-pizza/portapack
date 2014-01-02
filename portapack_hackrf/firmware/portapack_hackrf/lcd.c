@@ -179,8 +179,8 @@ typedef struct lcd_context_t {
 } lcd_context_t;
 
 static lcd_context_t lcd_context = {
-	.color_background = { 0, 0, 0 },
-	.color_foreground = { 255, 255, 255 },
+	.color_background = { .r =   0, .g =   0, .b =   0 },
+	.color_foreground = { .r = 255, .g = 255, .b = 255 },
 	.font = &font_medium
 };
 
