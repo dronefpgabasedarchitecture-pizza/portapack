@@ -179,6 +179,16 @@ void lcd_ramwr_start() {
 	lcd_rs(1);
 }
 
+uint_fast16_t lcd_get_scanline() {
+	lcd_rs(0);
+	lcd_data_write(0x45);
+	lcd_rs(1);
+	lcd_data_read();
+	const uint_fast8_t gts_h = lcd_data_read();
+	const uint_fast8_t gts_l = lcd_data_read();
+	return (gts_h << 8) | gts_l;
+}
+
 const lcd_color_t color_black = { .r =   0, .g =   0, .b =   0 };
 const lcd_color_t color_blue  = { .r =   0, .g =   0, .b = 255 };
 const lcd_color_t color_white = { .r = 255, .g = 255, .b = 255 };

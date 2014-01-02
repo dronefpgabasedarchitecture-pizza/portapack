@@ -57,6 +57,8 @@ void lcd_clear();
 void lcd_data_write(const uint_fast8_t value);
 void lcd_data_write_rgb(const lcd_color_t color);
 
+uint_fast16_t lcd_get_scanline();
+
 void lcd_set_font(const lcd_font_t* const font);
 void lcd_set_foreground(const lcd_color_t color);
 void lcd_set_background(const lcd_color_t color);
