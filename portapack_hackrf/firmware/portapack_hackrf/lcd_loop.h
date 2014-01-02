@@ -25,7 +25,7 @@
 #include <stdint.h>
 #include <fcntl.h>
 
-uint32_t* const switches_state = (uint32_t*)0x100910fc;
+uint32_t* const switches_state = (uint32_t*)0x200070fc;
 
 
 #endif

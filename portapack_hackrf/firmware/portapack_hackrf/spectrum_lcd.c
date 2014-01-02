@@ -63,8 +63,8 @@
 #include "decimate.h"
 #include "demodulate.h"
 
-static int8_t* sample_buffer_0 = (int8_t*)0x20004000;
-static int8_t* sample_buffer_1 = (int8_t*)0x20008000;
+static int8_t* sample_buffer_0 = (int8_t*)0x20008000;
+static int8_t* sample_buffer_1 = (int8_t*)0x2000c000;
 
 static gpdma_lli_t lli_rx[2];
 
