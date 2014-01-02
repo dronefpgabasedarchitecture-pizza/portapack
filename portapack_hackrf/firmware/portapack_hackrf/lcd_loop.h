@@ -27,5 +27,20 @@
 
 uint32_t* const switches_state = (uint32_t*)0x200070fc;
 
+typedef struct device_state_t {
+	int64_t tuned_hz;
+	int8_t lna_gain_db;
+	int8_t if_gain_db;
+	int8_t bb_gain_db;
+
+	uint32_t duration_decimate;
+	uint32_t duration_channel_filter;
+	uint32_t duration_demodulate;
+	uint32_t duration_audio;
+	uint32_t duration_all;
+	uint32_t duration_all_millipercent;
+} device_state_t;
+
+device_state_t* const device_state = (device_state_t*)0x20007000;
 
 #endif
