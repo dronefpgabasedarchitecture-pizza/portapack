@@ -50,7 +50,7 @@
 #include <gpdma.h>
 #include <sgpio_dma.h>
 
-#include "portapack.h"
+#include "portapack_audio.h"
 
 
 
@@ -403,7 +403,7 @@ void spectrum_init() {
 
 
 
-	portapack_init();
+	portapack_audio_init();
 
 	sgpio_set_slice_mode(false);
 

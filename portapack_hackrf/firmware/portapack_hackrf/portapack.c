@@ -20,9 +20,3 @@
  */
 
 #include "portapack.h"
-
-void portapack_init() {
-	portapack_audio_init();
-
-	//portapack_lcd_init();
-}

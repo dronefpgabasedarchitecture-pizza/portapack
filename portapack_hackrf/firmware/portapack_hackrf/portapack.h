@@ -22,8 +22,4 @@
 #ifndef __PORTAPACK_H__
 #define __PORTAPACK_H__
 
-#include "portapack_audio.h"
-
-void portapack_init();
-
 #endif/*__PORTAPACK_H__*/
