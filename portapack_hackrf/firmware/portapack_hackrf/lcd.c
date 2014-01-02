@@ -192,6 +192,18 @@ static const lcd_glyph_t* lcd_get_glyph(const lcd_font_t* const font, const char
 	}
 }
 
+static uint_fast16_t lcd_string_width(
+	const lcd_font_t* const font,
+	const char* const s,
+	const uint_fast16_t len
+) {
+	uint_fast16_t width = 0;
+	for(uint_fast16_t i=0; i<len; i++) {
+		width += lcd_get_glyph(font, s[i])->advance;
+	}
+	return width;
+}
+
 void lcd_set_font(const lcd_font_t* const font) {
 	lcd_context.font = font;
 }
