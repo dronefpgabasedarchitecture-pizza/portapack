@@ -72,7 +72,6 @@ SRC_M4_C = \
 ifeq ($(ADDON),PORTAPACK)
 	SRC_M4_C += fft.c
 	SRC_M4_C += lcd.c
-	SRC_M4_C += font_medium_lcd.c
 	SRC_M4_C += spectrum.c
 	SRC_M4_C += main.c
 	SRC_M4_C += spectrum_lcd.c
@@ -98,7 +97,7 @@ ifeq ($(ADDON),PORTAPACK)
 	SRC_M0_C = \
 		lcd.c \
 		lcd_loop.c \
-		font_medium_lcd.c
+		font_fixed_8x16.c
 endif
 
 ifeq ($(ADDON),VFD)

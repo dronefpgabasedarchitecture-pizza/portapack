@@ -19,47 +19,11 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <stdint.h>
-
-#include <hackrf_core.h>
-
-#include <libopencm3/lpc43xx/gpio.h>
+#ifndef __FONT_FIXED_8X16_H__
+#define __FONT_FIXED_8X16_H__
 
 #include "lcd.h"
-#include "font_fixed_8x16.h"
 
-#include "lcd_loop.h"
+extern lcd_font_t font_fixed_8x16;
 
-void delay(uint32_t duration)
-{
-	uint32_t i;
-	for (i = 0; i < duration; i++)
-		__asm__("nop");
-}
-
-}
-
-int main() {
-	lcd_init();
-	lcd_reset();
-	lcd_clear();
-
-	while(1) {
-		gpio_toggle(PORT_LED1_3, PIN_LED2);
-
-
-		lcd_draw_string(0, 24, header_chars, 53);
-
-		const lcd_color_t color_blue = { 0, 0, 255 };
-		const lcd_color_t color_white = { 255, 255, 255 };
-
-		lcd_set_foreground(color_blue);
-		lcd_fill_rectangle(0, 8, 320, 4);
-		lcd_set_foreground(color_white);
-		const uint32_t switches = lcd_data_read_switches();
-		*switches_state = switches;
-
-		delay(1000);
-	}
-	return 0;
-}
+#endif/*__FONT_FIXED_8X16_H__*/

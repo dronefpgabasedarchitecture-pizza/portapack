@@ -25,7 +25,7 @@
 #include <libopencm3/lpc43xx/scu.h>
 
 #include "lcd.h"
-#include "font_medium_lcd.h"
+#include "font_fixed_8x16.h"
 
 #define RDY_N_PORT (GPIO1)
 #define RDY_N_PIN (8)
@@ -181,7 +181,7 @@ typedef struct lcd_context_t {
 static lcd_context_t lcd_context = {
 	.color_background = { .r =   0, .g =   0, .b =   0 },
 	.color_foreground = { .r = 255, .g = 255, .b = 255 },
-	.font = &font_medium
+	.font = &font_fixed_8x16
 };
 
 static const lcd_glyph_t* lcd_get_glyph(const lcd_font_t* const font, const char c) {
