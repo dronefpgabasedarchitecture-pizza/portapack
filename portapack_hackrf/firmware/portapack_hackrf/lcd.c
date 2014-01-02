@@ -131,6 +131,17 @@ void lcd_data_write(const uint_fast8_t value) {
 	lcd_wr_pulse();
 }
 
+uint_fast8_t lcd_data_read() {
+	lcd_dir_read();
+	lcd_rd_n(0);
+	delay(100);
+	const uint_fast8_t value = (GPIO3_PIN >> 8) & 0xff;
+	lcd_rd_n(1);
+	lcd_dir_idle();
+	
+	return value;
+}
+
 void lcd_data_write_rgb(const lcd_color_t color) {
 	GPIO3_MPIN = (color.b << 8);
 	lcd_wr_pulse();
@@ -321,18 +332,6 @@ uint32_t lcd_data_read_switches() {
 	return data;
 }
 
-/*
-uint_fast8_t lcd_data_read() {
-	lcd_dir_read();
-	lcd_rd_n(0);
-	delay(100);
-	const uint_fast8_t value = (GPIO3_PIN >> 8) & 0xff;
-	lcd_rd_n(1);
-	lcd_dir_idle();
-	
-	return value;
-}
-*/
 /*
 void write_lcd(const uint8_t value) {
 	
