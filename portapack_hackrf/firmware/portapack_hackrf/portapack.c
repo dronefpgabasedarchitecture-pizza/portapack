@@ -21,45 +21,27 @@
 
 #include "portapack.h"
 
-#include "lcd.h"
-#include "lcd_loop.h"
-#include "encoder.h"
-#include "tuning.h"
-
-#include "fft.h"
-#include "complex.h"
-#include "window.h"
-
-#include <stdio.h>
-#include <math.h>
-
 #include <libopencm3/cm3/vector.h>
 #include <libopencm3/cm3/systick.h>
-//#include <libopencm3/cm3/scs.h>
-
-#include <libopencm3/lpc43xx/cgu.h>
-#include <libopencm3/lpc43xx/gpio.h>
 #include <libopencm3/lpc43xx/m4/nvic.h>
-#include <libopencm3/lpc43xx/sgpio.h>
 
 #include <hackrf_core.h>
 #include <rf_path.h>
 #include <sgpio.h>
 #include <streaming.h>
-
+#include <max2837.h>
+#include <m0_startup.h>
 #include <gpdma.h>
 #include <sgpio_dma.h>
 
 #include "portapack_audio.h"
-
-
-
-
 #include "portapack_i2s.h"
-#include <libopencm3/lpc43xx/gpdma.h>
-#include <max2837.h>
-#include <m0_startup.h>
 
+#include "lcd.h"
+#include "lcd_loop.h"
+#include "tuning.h"
+
+#include "complex.h"
 #include "decimate.h"
 #include "demodulate.h"
 
