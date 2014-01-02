@@ -70,19 +70,14 @@ SRC_M4_C = \
 	$(PATH_HACKRF_FIRMWARE_COMMON)/rom_iap.c
 
 ifeq ($(ADDON),PORTAPACK)
-	SRC_M4_C += fft.c
-	SRC_M4_C += lcd.c
 	SRC_M4_C += main.c
 	SRC_M4_C += portapack.c
 	SRC_M4_C += portapack_audio.c
 	SRC_M4_C += portapack_i2s.c
 	SRC_M4_C += complex.c
-	#SRC_M4_C += gr_fast_atan2f.c
 	SRC_M4_C += fxpt_atan2.c
 	SRC_M4_C += decimate.c
 	SRC_M4_C += demodulate.c
-
-	SRC_M4_C += decimate_test.c
 
 	ifeq ($(BOARD),JAWBREAKER)
 		SRC_M4_C += portapack_spi.c
@@ -96,18 +91,6 @@ ifeq ($(ADDON),PORTAPACK)
 		lcd.c \
 		lcd_loop.c \
 		font_fixed_8x16.c
-endif
-
-ifeq ($(ADDON),VFD)
-	ifeq ($(BOARD),JAWBREAKER)
-		SRC_M4_C += fft.c
-		SRC_M4_C += vfd.c
-		SRC_M4_C += font_small_vfd.c
-		SRC_M4_C += spectrum.c
-		SRC_M4_C += encoder.c
-		SRC_M4_C += hackrf_usb.c
-		SRC_M4_C += spectrum_vfd.c
-	endif
 endif
 
 include $(PATH_HACKRF_FIRMWARE_COMMON)/Makefile_inc.mk
