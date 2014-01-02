@@ -69,6 +69,19 @@ static void draw_field_percent(int32_t value_millipercent, const char* const for
 	lcd_draw_string(x, y, temp, min(text_len, temp_len));
 }
 
+static void draw_cycles(const uint_fast16_t x, const uint_fast16_t) {
+	lcd_colors_invert();
+	lcd_draw_string(x, y, "Cycle Count ", 12);
+	lcd_colors_invert();
+
+	draw_field_int(device_state->duration_decimate,       "Decim %6d", x, y + 16);
+	draw_field_int(device_state->duration_channel_filter, "Chan  %6d", x, y + 32);
+	draw_field_int(device_state->duration_demodulate,     "Demod %6d", x, y + 48);
+	draw_field_int(device_state->duration_audio,          "Audio %6d", x, y + 64);
+	draw_field_int(device_state->duration_all,            "Total %6d", x, y + 80);
+	draw_field_percent(device_state->duration_all_millipercent, "CPU   %3d.%01d%%", x, y + 96);
+}
+
 int main() {
 	lcd_init();
 	lcd_reset();
@@ -89,16 +102,7 @@ int main() {
 		draw_field_int(device_state->if_gain_db,  "IF  %2d dB",      0, 80);
 		draw_field_int(device_state->bb_gain_db,  "BB  %2d dB",      0, 96);
 
-		lcd_colors_invert();
-		lcd_draw_string(0, 128, "Cycle Count ", 12);
-		lcd_colors_invert();
-		
-		draw_field_int(device_state->duration_decimate,       "Decim %6d", 0, 144);
-		draw_field_int(device_state->duration_channel_filter, "Chan  %6d", 0, 160);
-		draw_field_int(device_state->duration_demodulate,     "Demod %6d", 0, 176);
-		draw_field_int(device_state->duration_audio,          "Audio %6d", 0, 192);
-		draw_field_int(device_state->duration_all,            "Total %6d", 0, 208);
-		draw_field_percent(device_state->duration_all_millipercent, "CPU   %3d.%01d%%", 0, 224);
+		draw_cycles(0, 128);
 
 		const uint32_t switches = lcd_data_read_switches();
 		*switches_state = switches;
