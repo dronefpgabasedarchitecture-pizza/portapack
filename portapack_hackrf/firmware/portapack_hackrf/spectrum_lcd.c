@@ -392,13 +392,16 @@ void spectrum_init() {
 	set_rx_mode();
 
 	rf_path_set_direction(RF_PATH_DIRECTION_RX);
-	increment_frequency(0);
 
-	rf_path_set_lna(0);
-	max2837_set_lna_gain(24);	/* 8dB increments */
-	max2837_set_vga_gain(16);	/* 2dB increments, up to 62dB */
-	
+	device_state->tuned_hz = 128350000;
+	device_state->lna_gain_db = 0;
+	device_state->if_gain_db = 24;
+	device_state->bb_gain_db = 16;
 
+	set_frequency(device_state->tuned_hz);
+	rf_path_set_lna((device_state->lna_gain_db >= 14) ? 1 : 0);
+	max2837_set_lna_gain(device_state->if_gain_db);	/* 8dB increments */
+	max2837_set_vga_gain(device_state->bb_gain_db);	/* 2dB increments, up to 62dB */
 
 	m0_load_code_from_m4_text();
 	m0_run();
@@ -446,18 +449,21 @@ void handle_joysticks() {
 
 	if( increment != 0 ) {
 		increment_frequency(increment * 25000);
+		device_state->tuned_hz = get_frequency();
 	}
 
 	if( *switches_state & SWITCH_S2_UP ) {
 		if( lna_gain < 40.0f ) {
 			lna_gain += 0.5f;
 			max2837_set_lna_gain((uint32_t)lna_gain);	/* 8dB increments */
+			device_state->if_gain_db = lna_gain;
 		}
 	}
 	if( *switches_state & SWITCH_S2_DOWN ) {
 		if( lna_gain > 0.0f ) {
 			lna_gain -= 0.5f;
 			max2837_set_lna_gain((uint32_t)lna_gain);	/* 8dB increments */
+			device_state->if_gain_db = lna_gain;
 		}
 	}
 }
@@ -501,4 +507,11 @@ void spectrum_run() {
 
 	handle_joysticks();
 
+	device_state->duration_decimate = duration_decimate;
+	device_state->duration_channel_filter = duration_channel_filter;
+	device_state->duration_demodulate = duration_demodulate;
+	device_state->duration_audio = duration_audio;
+	device_state->duration_all = duration_all;
+
+	device_state->duration_all_millipercent = (float)duration_all / cycles_per_baseband_block * 100000.0f;
 }
