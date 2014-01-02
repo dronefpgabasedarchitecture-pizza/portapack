@@ -30,6 +30,8 @@
 
 #include "lcd_loop.h"
 
+#include <stdio.h>
+
 void delay(uint32_t duration)
 {
 	uint32_t i;
@@ -37,6 +39,34 @@ void delay(uint32_t duration)
 		__asm__("nop");
 }
 
+static inline int min(int v1, int v2) {
+	return (v1 < v2) ? v1 : v2;
+}
+
+static void draw_field_int(int32_t value, const char* const format, uint_fast16_t x, uint_fast16_t y) {
+	char temp[80];
+	const size_t temp_len = 79;
+	const size_t text_len = snprintf(temp, temp_len, format, value);
+	lcd_draw_string(x, y, temp, min(text_len, temp_len));
+}
+
+static void draw_field_mhz(int64_t value, const char* const format, uint_fast16_t x, uint_fast16_t y) {
+	char temp[80];
+	const size_t temp_len = 79;
+	const int32_t value_mhz = value / 1000000;
+	const int32_t value_hz = value - (value_mhz * 1000000);
+	const size_t text_len = snprintf(temp, temp_len, format, value_mhz, value_hz);
+	lcd_draw_string(x, y, temp, min(text_len, temp_len));
+}
+
+
+static void draw_field_percent(int32_t value_millipercent, const char* const format, uint_fast16_t x, uint_fast16_t y) {
+	char temp[80];
+	const size_t temp_len = 79;
+	const int32_t value_units = value_millipercent / 1000;
+	const int32_t value_millis = value_millipercent - (value_units * 1000);
+	const size_t text_len = snprintf(temp, temp_len, format, value_units, value_millis);
+	lcd_draw_string(x, y, temp, min(text_len, temp_len));
 }
 
 int main() {
