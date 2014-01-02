@@ -94,6 +94,8 @@ int main() {
 	lcd_draw_string(0, 0, "HackRF PortaPack", 16);
 	lcd_colors_invert();
 
+	uint32_t frame = 0;
+	
 	while(1) {
 		gpio_toggle(PORT_LED1_3, PIN_LED2);
 
@@ -107,7 +109,12 @@ int main() {
 		const uint32_t switches = lcd_data_read_switches();
 		*switches_state = switches;
 
-		delay(1000);
+		while( lcd_get_scanline() < 200 );
+		while( lcd_get_scanline() >= 200 );
+
+		frame += 1;
+		draw_field_int(frame, "%8d", 256, 0);
 	}
+
 	return 0;
 }
