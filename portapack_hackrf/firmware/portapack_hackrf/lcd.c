@@ -259,8 +259,9 @@ void lcd_draw_string(
 	const uint_fast16_t len
 ) {
 	const lcd_font_t* const font = lcd_context.font;
+	const uint_fast16_t string_width = lcd_string_width(font, p, len);
 
-	lcd_caset(x, x + font->char_advance * len - 1);
+	lcd_caset(x, x + string_width - 1);
 	lcd_paset(y, y + font->char_height - 1);
 	lcd_ramwr_start();
 
