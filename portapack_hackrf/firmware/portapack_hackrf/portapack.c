@@ -520,7 +520,6 @@ static volatile uint32_t sample_frame_count = 0;
 
 void dma_isr() {
 	sgpio_dma_irq_tc_acknowledge();
-	gpio_clear(PORT_LED1_3, PIN_LED3);
 	sample_frame_count += 1;
 
 	const size_t current_lli_index = sgpio_dma_current_transfer_index(lli_rx, 2);
@@ -541,8 +540,6 @@ void dma_isr() {
 	for(size_t i=0, j=0; i<I2S_BUFFER_SAMPLE_COUNT; i++, j++) {
 		audio_tx_buffer[i*2] = audio_tx_buffer[i*2+1] = work[j];
 	}
-
-	gpio_set(PORT_LED1_3, PIN_LED3);
 }
 
 static const float cycles_per_baseband_block = (2048.0f / 3072000.0f) * 204000000.0f;
