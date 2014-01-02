@@ -22,14 +22,7 @@
 #ifndef __SPECTRUM_H__
 #define __SPECTRUM_H__
 
-#include <stdint.h>
-
 void spectrum_init();
 void spectrum_run();
-
-void increment_frequency(const int32_t increment);
-
-void set_frequency(const int64_t new_frequency);
-int64_t get_frequency();
 
 #endif

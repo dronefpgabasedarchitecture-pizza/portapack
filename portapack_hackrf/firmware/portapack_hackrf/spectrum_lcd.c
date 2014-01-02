@@ -72,6 +72,26 @@ uint32_t systick_difference(const uint32_t t1, const uint32_t t2) {
 	return (t1 - t2) & 0xffffff;
 }
 
+int64_t target_frequency = 128350000;
+const int32_t offset_frequency = -768000;
+
+void set_frequency(const int64_t new_frequency) {
+	if( (new_frequency >= 10000000L) && (new_frequency <= 6000000000L) ) {
+		target_frequency = new_frequency;
+		const int64_t tuned_frequency = target_frequency + offset_frequency;
+		set_freq(tuned_frequency);
+	}
+}
+
+int64_t get_frequency() {
+	return target_frequency;
+}
+
+void increment_frequency(const int32_t increment) {
+	const int64_t new_frequency = target_frequency + increment;
+	set_frequency(new_frequency);
+}
+
 static volatile uint32_t duration_decimate = 0;
 static volatile uint32_t duration_channel_filter = 0;
 static volatile uint32_t duration_demodulate = 0;
