@@ -29,6 +29,7 @@ void spectrum_run();
 
 void increment_frequency(const int32_t increment);
 
-extern volatile int64_t target_frequency;
+void set_frequency(const int64_t new_frequency);
+int64_t get_frequency();
 
 #endif

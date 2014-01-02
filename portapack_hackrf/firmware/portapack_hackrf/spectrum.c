@@ -23,15 +23,22 @@
 
 #include "tuning.h"
 
-
-volatile int64_t target_frequency = 91500000;
+int64_t target_frequency = 128350000;
 const int32_t offset_frequency = -768000;
 
 void increment_frequency(const int32_t increment) {
 	const int64_t new_frequency = target_frequency + increment;
+	set_frequency(new_frequency);
+}
+
+void set_frequency(const int64_t new_frequency) {
 	if( (new_frequency >= 10000000L) && (new_frequency <= 6000000000L) ) {
 		target_frequency = new_frequency;
 		const int64_t tuned_frequency = target_frequency + offset_frequency;
 		set_freq(tuned_frequency);
 	}
+}
+
+int64_t get_frequency() {
+	return target_frequency;
 }
