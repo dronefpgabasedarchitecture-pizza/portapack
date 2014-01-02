@@ -64,7 +64,7 @@ static void draw_field_percent(int32_t value_millipercent, const char* const for
 	char temp[80];
 	const size_t temp_len = 79;
 	const int32_t value_units = value_millipercent / 1000;
-	const int32_t value_millis = value_millipercent - (value_units * 1000);
+	const int32_t value_millis = (value_millipercent - (value_units * 1000)) / 100;
 	const size_t text_len = snprintf(temp, temp_len, format, value_units, value_millis);
 	lcd_draw_string(x, y, temp, min(text_len, temp_len));
 }
