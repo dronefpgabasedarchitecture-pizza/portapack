@@ -168,6 +168,10 @@ void lcd_ramwr_start() {
 	lcd_rs(1);
 }
 
+const lcd_color_t color_black = { .r =   0, .g =   0, .b =   0 };
+const lcd_color_t color_blue  = { .r =   0, .g =   0, .b = 255 };
+const lcd_color_t color_white = { .r = 255, .g = 255, .b = 255 };
+
 typedef struct lcd_context_t {
 	lcd_color_t color_background;
 	lcd_color_t color_foreground;

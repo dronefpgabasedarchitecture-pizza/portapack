@@ -30,6 +30,10 @@ typedef struct lcd_color_t {
 	uint8_t b;
 } lcd_color_t;
 
+extern const lcd_color_t color_black;
+extern const lcd_color_t color_blue;
+extern const lcd_color_t color_white;
+
 typedef struct lcd_glyph_t {
 	const uint8_t* const row;
 	const uint8_t width;
