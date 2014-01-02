@@ -69,7 +69,7 @@ static void draw_field_percent(int32_t value_millipercent, const char* const for
 	lcd_draw_string(x, y, temp, min(text_len, temp_len));
 }
 
-static void draw_cycles(const uint_fast16_t x, const uint_fast16_t) {
+static void draw_cycles(const uint_fast16_t x, const uint_fast16_t y) {
 	lcd_colors_invert();
 	lcd_draw_string(x, y, "Cycle Count ", 12);
 	lcd_colors_invert();
