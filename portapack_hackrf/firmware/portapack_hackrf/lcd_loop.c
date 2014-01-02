@@ -72,20 +72,37 @@ static void draw_field_percent(int32_t value_millipercent, const char* const for
 int main() {
 	lcd_init();
 	lcd_reset();
+
+	lcd_set_background(color_blue);
 	lcd_clear();
+
+	lcd_set_background(color_white);
+	lcd_set_foreground(color_blue);
+	lcd_draw_string(0, 0, "HackRF PortaPack", 16);
+
+	lcd_set_background(color_blue);
+	lcd_set_foreground(color_white);
 
 	while(1) {
 		gpio_toggle(PORT_LED1_3, PIN_LED2);
 
+		draw_field_mhz(device_state->tuned_hz,    "%4d.%03d MHz", 0, 32);
+		draw_field_int(device_state->lna_gain_db, "LNA %2d dB",      0, 64);
+		draw_field_int(device_state->if_gain_db,  "IF  %2d dB",      0, 80);
+		draw_field_int(device_state->bb_gain_db,  "BB  %2d dB",      0, 96);
 
-		lcd_draw_string(0, 24, header_chars, 53);
-
-		const lcd_color_t color_blue = { 0, 0, 255 };
-		const lcd_color_t color_white = { 255, 255, 255 };
-
+		lcd_set_background(color_white);
 		lcd_set_foreground(color_blue);
-		lcd_fill_rectangle(0, 8, 320, 4);
+		lcd_draw_string(0, 128, "Cycle Count ", 12);
+		lcd_set_background(color_blue);
 		lcd_set_foreground(color_white);
+		draw_field_int(device_state->duration_decimate,       "Decim %6d", 0, 144);
+		draw_field_int(device_state->duration_channel_filter, "Chan  %6d", 0, 160);
+		draw_field_int(device_state->duration_demodulate,     "Demod %6d", 0, 176);
+		draw_field_int(device_state->duration_audio,          "Audio %6d", 0, 192);
+		draw_field_int(device_state->duration_all,            "Total %6d", 0, 208);
+		draw_field_percent(device_state->duration_all_millipercent, "CPU %3d.%03d%%", 0, 224);
+
 		const uint32_t switches = lcd_data_read_switches();
 		*switches_state = switches;
 
