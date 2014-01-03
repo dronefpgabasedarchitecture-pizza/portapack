@@ -23,6 +23,7 @@
 
 #include <libopencm3/cm3/vector.h>
 #include <libopencm3/cm3/systick.h>
+#include <libopencm3/lpc43xx/ipc.h>
 #include <libopencm3/lpc43xx/m4/nvic.h>
 
 #include <hackrf_core.h>
@@ -455,47 +456,9 @@ void portapack_init() {
 
 	sgpio_dma_rx_start(&lli_rx[0]);
 	sgpio_cpld_stream_enable();
-}
 
-static float lna_gain = 16.0f;
-
-void handle_joysticks() {
-	const uint_fast8_t switches_incr
-		= ((*switches_state & SWITCH_S1_LEFT) ? 8 : 0)
-		| ((*switches_state & SWITCH_S2_LEFT) ? 4 : 0)
-		| ((*switches_state & SWITCH_S1_RIGHT) ? 2 : 0)
-		| ((*switches_state & SWITCH_S2_RIGHT) ? 1 : 0)
-		;
-
-	int32_t increment = 0;
-	switch( switches_incr ) {
-	case 1:  increment = 1;    break;
-	case 2:  increment = 10;   break;
-	case 3:  increment = 100;  break;
-	case 4:  increment = -1;   break;
-	case 8:  increment = -10;  break;
-	case 12: increment = -100; break;
-	}
-
-	if( increment != 0 ) {
-		increment_frequency(increment * 25000);
-		device_state->tuned_hz = get_frequency();
-	}
-
-	if( *switches_state & SWITCH_S2_UP ) {
-		if( lna_gain < 40.0f ) {
-			lna_gain += 0.5f;
-			max2837_set_lna_gain((uint32_t)lna_gain);	/* 8dB increments */
-			device_state->if_gain_db = lna_gain;
-		}
-	}
-	if( *switches_state & SWITCH_S2_DOWN ) {
-		if( lna_gain > 0.0f ) {
-			lna_gain -= 0.5f;
-			max2837_set_lna_gain((uint32_t)lna_gain);	/* 8dB increments */
-			device_state->if_gain_db = lna_gain;
-		}
-	}
+	nvic_set_priority(NVIC_M0CORE_IRQ, 255);
+	nvic_enable_irq(NVIC_M0CORE_IRQ);
 }
 
 static volatile uint32_t sample_frame_count = 0;
@@ -524,13 +487,48 @@ void dma_isr() {
 	}
 }
 
+#include "arm_intrinsics.h"
+
+void ui_command_set_if_gain(void* const args) {
+	const int32_t gain = *((int32_t*)args);
+	if( (gain >= 0) && (gain <= 40) ) {
+		device_state->if_gain_db = gain;
+		max2837_set_lna_gain(gain);
+	}
+}
+
+void ui_command_set_frequency(void* const args) {
+	const int64_t new_frequency = *((int64_t*)args);
+	if( (new_frequency >= 10000000) && (new_frequency <= 6000000000) ) {
+		set_frequency(new_frequency);
+		device_state->tuned_hz = new_frequency;
+	}
+}
+
+void m0core_isr() {
+	ipc_m0apptxevent_clear();
+
+	switch(*ui_command) {
+	case UI_COMMAND_SET_IF_GAIN:
+		ui_command_set_if_gain(ui_command_args);
+		break;
+
+	case UI_COMMAND_SET_FREQUENCY:
+		ui_command_set_frequency(ui_command_args);
+		break;
+
+	case UI_COMMAND_NONE:
+	default:
+		break;
+	}
+
+	*ui_command = UI_COMMAND_NONE;
+}
+
 static const float cycles_per_baseband_block = (2048.0f / 3072000.0f) * 204000000.0f;
 
 void portapack_run() {
-	// Dumb delay now that M0 and M4 are no longer synchronizing.
-	delay(500000);
-
-	handle_joysticks();
+	__WFE();
 
 	device_state->duration_decimate = duration_decimate;
 	device_state->duration_channel_filter = duration_channel_filter;

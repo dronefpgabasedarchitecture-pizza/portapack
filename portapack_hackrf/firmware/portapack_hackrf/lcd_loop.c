@@ -82,6 +82,44 @@ static void draw_cycles(const uint_fast16_t x, const uint_fast16_t y) {
 	draw_field_percent(device_state->duration_all_millipercent, "CPU   %3d.%01d%%", x, y + 96);
 }
 
+int handle_joysticks() {
+	const uint_fast8_t switches_incr
+		= ((*switches_state & SWITCH_S1_LEFT) ? 8 : 0)
+		| ((*switches_state & SWITCH_S2_LEFT) ? 4 : 0)
+		| ((*switches_state & SWITCH_S1_RIGHT) ? 2 : 0)
+		| ((*switches_state & SWITCH_S2_RIGHT) ? 1 : 0)
+		;
+
+	int32_t increment = 0;
+	switch( switches_incr ) {
+	case 1:  increment = 1;    break;
+	case 2:  increment = 10;   break;
+	case 3:  increment = 100;  break;
+	case 4:  increment = -1;   break;
+	case 8:  increment = -10;  break;
+	case 12: increment = -100; break;
+	}
+
+	if( increment != 0 ) {
+		*((int64_t*)ui_command_args) = device_state->tuned_hz + (increment * 25000);
+		return UI_COMMAND_SET_FREQUENCY;
+	}
+
+	if( *switches_state & SWITCH_S2_UP ) {
+		*((int32_t*)ui_command_args) = device_state->if_gain_db + 1;
+		return UI_COMMAND_SET_IF_GAIN;
+	}
+
+	if( *switches_state & SWITCH_S2_DOWN ) {
+		*((int32_t*)ui_command_args) = device_state->if_gain_db - 1;
+		return UI_COMMAND_SET_IF_GAIN;
+	}
+
+	return 0;
+}
+
+#include "arm_intrinsics.h"
+
 int main() {
 	lcd_init();
 	lcd_reset();
@@ -111,6 +149,12 @@ int main() {
 
 		while( lcd_get_scanline() < 200 );
 		while( lcd_get_scanline() >= 200 );
+
+		while(*ui_command != UI_COMMAND_NONE);
+		*ui_command = handle_joysticks();
+		if( *ui_command != UI_COMMAND_NONE ) {
+			__SEV();
+		}
 
 		frame += 1;
 		draw_field_int(frame, "%8d", 256, 0);
