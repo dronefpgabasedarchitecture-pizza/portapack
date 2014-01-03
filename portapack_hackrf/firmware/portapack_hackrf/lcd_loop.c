@@ -23,8 +23,6 @@
 
 #include <hackrf_core.h>
 
-#include <libopencm3/lpc43xx/gpio.h>
-
 #include "lcd.h"
 #include "font_fixed_8x16.h"
 
@@ -135,8 +133,6 @@ int main() {
 	uint32_t frame = 0;
 	
 	while(1) {
-		gpio_toggle(PORT_LED1_3, PIN_LED2);
-
 		draw_field_mhz(device_state->tuned_hz,    "%4d.%03d MHz", 0, 32);
 		draw_field_int(device_state->lna_gain_db, "LNA %2d dB",      0, 64);
 		draw_field_int(device_state->if_gain_db,  "IF  %2d dB",      0, 80);
