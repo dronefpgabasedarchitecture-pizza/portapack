@@ -98,7 +98,8 @@ void lcd_dir_write() {
 }
 
 void lcd_dir_idle() {
-	lcd_dir_read();
+	lcd_dir(1);
+	GPIO_DIR(GPIO3) &= ~(0xffL << 8);
 }
 
 void lcd_rs(const uint_fast8_t value) {
