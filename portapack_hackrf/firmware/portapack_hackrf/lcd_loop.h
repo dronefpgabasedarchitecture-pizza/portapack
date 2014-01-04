@@ -23,7 +23,6 @@
 #define __LCD_LOOP_H__
 
 #include <stdint.h>
-#include <fcntl.h>
 
 uint32_t* const switches_state = (uint32_t*)0x200070f0;
 

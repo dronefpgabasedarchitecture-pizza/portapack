@@ -21,8 +21,6 @@
 
 #include <stdint.h>
 
-#include <hackrf_core.h>
-
 #include "lcd.h"
 #include "font_fixed_8x16.h"
 
