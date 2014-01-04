@@ -204,15 +204,15 @@ __attribute__((always_inline)) static inline uint32_t __SXTAH(uint32_t RN, uint3
 }
 
 __attribute__((always_inline)) static inline void __SEV() {
-	__asm volatile("sev");
+	__asm volatile("sev" : : : "memory");
 }
 
 __attribute__((always_inline)) static inline void __WFE() {
-	__asm volatile("wfe");
+	__asm volatile("wfe" : : : "memory");
 }
 
 __attribute__((always_inline)) static inline void __WFI() {
-	__asm volatile("wfi");
+	__asm volatile("wfi" : : : "memory");
 }
 
 #endif/*__ARM_INTRINSICS_H__*/
