@@ -77,7 +77,18 @@ static void draw_cycles(const uint_fast16_t x, const uint_fast16_t y) {
 }
 
 static void handle_joysticks() {
-	const uint32_t switches = lcd_data_read_switches();
+	static uint32_t switches_history[3] = { 0, 0, 0 };
+	static uint32_t switches_last = 0;
+
+	const uint32_t switches_raw = lcd_data_read_switches();
+	uint32_t switches_now = switches_raw & switches_history[0] & switches_history[1] & switches_history[2];
+	switches_history[0] = switches_history[1];
+	switches_history[1] = switches_history[2];
+	switches_history[2] = switches_raw;
+
+	const uint32_t switches_event = switches_now ^ switches_last;
+	const uint32_t switches = switches_event & switches_now;
+	switches_last = switches_now;
 
 	const uint_fast8_t switches_incr
 		= ((switches & SWITCH_S1_LEFT) ? 8 : 0)
