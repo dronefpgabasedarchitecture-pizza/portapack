@@ -30,15 +30,13 @@
 
 #include <stdio.h>
 
+#include "linux_stuff.h"
+
 void delay(uint32_t duration)
 {
 	uint32_t i;
 	for (i = 0; i < duration; i++)
 		__asm__("nop");
-}
-
-static inline int min(int v1, int v2) {
-	return (v1 < v2) ? v1 : v2;
 }
 
 static void draw_field_int(int32_t value, const char* const format, uint_fast16_t x, uint_fast16_t y) {
