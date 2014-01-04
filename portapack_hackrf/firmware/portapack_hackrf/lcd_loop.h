@@ -26,15 +26,6 @@
 
 uint32_t* const switches_state = (uint32_t*)0x200070f0;
 
-typedef enum {
-	UI_COMMAND_NONE = 0,
-	UI_COMMAND_SET_FREQUENCY = 1,
-	UI_COMMAND_SET_IF_GAIN = 2
-} ui_command_t;
-
-ui_command_t* const ui_command = (ui_command_t*)0x200070f4;
-void* const ui_command_args = (void*)0x200070f8;
-
 typedef struct device_state_t {
 	int64_t tuned_hz;
 	int8_t lna_gain_db;

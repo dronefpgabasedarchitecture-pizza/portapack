@@ -28,6 +28,7 @@
 
 #include <stdio.h>
 
+#include "ipc.h"
 #include "linux_stuff.h"
 
 void delay(uint32_t duration)
@@ -53,7 +54,6 @@ static void draw_field_mhz(int64_t value, const char* const format, uint_fast16_
 	lcd_draw_string(x, y, temp, min(text_len, temp_len));
 }
 
-
 static void draw_field_percent(int32_t value_millipercent, const char* const format, uint_fast16_t x, uint_fast16_t y) {
 	char temp[80];
 	const size_t temp_len = 79;
@@ -76,7 +76,7 @@ static void draw_cycles(const uint_fast16_t x, const uint_fast16_t y) {
 	draw_field_percent(device_state->duration_all_millipercent, "CPU   %3d.%01d%%", x, y + 96);
 }
 
-int handle_joysticks() {
+void handle_joysticks() {
 	const uint_fast8_t switches_incr
 		= ((*switches_state & SWITCH_S1_LEFT) ? 8 : 0)
 		| ((*switches_state & SWITCH_S2_LEFT) ? 4 : 0)
@@ -95,26 +95,21 @@ int handle_joysticks() {
 	}
 
 	if( increment != 0 ) {
-		*((int64_t*)ui_command_args) = device_state->tuned_hz + (increment * 25000);
-		return UI_COMMAND_SET_FREQUENCY;
+		ipc_command_set_frequency(device_state->tuned_hz + (increment * 25000));
 	}
 
 	if( *switches_state & SWITCH_S2_UP ) {
-		*((int32_t*)ui_command_args) = device_state->if_gain_db + 1;
-		return UI_COMMAND_SET_IF_GAIN;
+		ipc_command_set_if_gain(device_state->if_gain_db + 8);
 	}
 
 	if( *switches_state & SWITCH_S2_DOWN ) {
-		*((int32_t*)ui_command_args) = device_state->if_gain_db - 1;
-		return UI_COMMAND_SET_IF_GAIN;
+		ipc_command_set_if_gain(device_state->if_gain_db - 8);
 	}
-
-	return 0;
 }
 
-#include "arm_intrinsics.h"
-
 int main() {
+	ipc_init();
+
 	lcd_init();
 	lcd_reset();
 
@@ -142,11 +137,8 @@ int main() {
 		while( lcd_get_scanline() < 200 );
 		while( lcd_get_scanline() >= 200 );
 
-		while(*ui_command != UI_COMMAND_NONE);
-		*ui_command = handle_joysticks();
-		if( *ui_command != UI_COMMAND_NONE ) {
-			__SEV();
-		}
+		while( !ipc_queue_is_empty() );
+		handle_joysticks();
 
 		frame += 1;
 		draw_field_int(frame, "%8d", 256, 0);

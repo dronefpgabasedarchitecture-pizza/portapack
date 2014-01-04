@@ -46,6 +46,8 @@
 #include "decimate.h"
 #include "demodulate.h"
 
+#include "ipc.h"
+
 static int8_t* sample_buffer_0 = (int8_t*)0x20008000;
 static int8_t* sample_buffer_1 = (int8_t*)0x2000c000;
 
@@ -58,11 +60,13 @@ uint32_t systick_difference(const uint32_t t1, const uint32_t t2) {
 int64_t target_frequency = 128350000;
 const int32_t offset_frequency = -768000;
 
-void set_frequency(const int64_t new_frequency) {
-	if( (new_frequency >= 10000000L) && (new_frequency <= 6000000000L) ) {
+bool set_frequency(const int64_t new_frequency) {
+	const int64_t tuned_frequency = new_frequency + offset_frequency;
+	if( set_freq(tuned_frequency) ) {
 		target_frequency = new_frequency;
-		const int64_t tuned_frequency = target_frequency + offset_frequency;
-		set_freq(tuned_frequency);
+		return true;
+	} else {
+		return false;
 	}
 }
 
@@ -489,40 +493,43 @@ void dma_isr() {
 
 #include "arm_intrinsics.h"
 
-void ui_command_set_if_gain(void* const args) {
-	const int32_t gain = *((int32_t*)args);
-	if( (gain >= 0) && (gain <= 40) ) {
-		device_state->if_gain_db = gain;
-		max2837_set_lna_gain(gain);
+void handle_command_none(const void* const command) {
+	(void)command;
+}
+
+void handle_command_set_if_gain(const void* const arg) {
+	const ipc_command_set_if_gain_t* const command = arg;
+	if( max2837_set_lna_gain(command->gain_db) ) {
+		device_state->if_gain_db = command->gain_db;
 	}
 }
 
-void ui_command_set_frequency(void* const args) {
-	const int64_t new_frequency = *((int64_t*)args);
-	if( (new_frequency >= 10000000) && (new_frequency <= 6000000000) ) {
-		set_frequency(new_frequency);
-		device_state->tuned_hz = new_frequency;
+void handle_command_set_frequency(const void* const arg) {
+	const ipc_command_set_frequency_t* const command = arg;
+	if( set_frequency(command->frequency_hz) ) {
+		device_state->tuned_hz = command->frequency_hz;
 	}
 }
+
+typedef void (*command_handler_t)(const void* const command);
+
+static command_handler_t command_handler[] = {
+	[IPC_COMMAND_ID_NONE] = handle_command_none,
+	[IPC_COMMAND_ID_SET_IF_GAIN] = handle_command_set_if_gain,
+	[IPC_COMMAND_ID_SET_FREQUENCY] = handle_command_set_frequency
+};
+static const size_t command_handler_count = sizeof(command_handler) / sizeof(command_handler[0]);
 
 void m0core_isr() {
 	ipc_m0apptxevent_clear();
 
-	switch(*ui_command) {
-	case UI_COMMAND_SET_IF_GAIN:
-		ui_command_set_if_gain(ui_command_args);
-		break;
-
-	case UI_COMMAND_SET_FREQUENCY:
-		ui_command_set_frequency(ui_command_args);
-		break;
-
-	case UI_COMMAND_NONE:
-	default:
-		break;
+	while( !ipc_queue_is_empty() ) {
+		uint8_t command_buffer[256];
+		const ipc_command_id_t command_id = ipc_queue_read(command_buffer, sizeof(command_buffer));
+		if( command_id < command_handler_count) {
+			command_handler[command_id](command_buffer);
+		}
 	}
-
-	*ui_command = UI_COMMAND_NONE;
 }
 
 static const float cycles_per_baseband_block = (2048.0f / 3072000.0f) * 204000000.0f;

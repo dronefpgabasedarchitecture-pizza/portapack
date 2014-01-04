@@ -78,6 +78,8 @@ ifeq ($(ADDON),PORTAPACK)
 	SRC_M4_C += fxpt_atan2.c
 	SRC_M4_C += decimate.c
 	SRC_M4_C += demodulate.c
+	SRC_M4_C += kfifo.c
+	SRC_M4_C += ipc.c
 
 	ifeq ($(BOARD),JAWBREAKER)
 		SRC_M4_C += portapack_spi.c
@@ -90,7 +92,9 @@ ifeq ($(ADDON),PORTAPACK)
 	SRC_M0_C = \
 		lcd.c \
 		lcd_loop.c \
-		font_fixed_8x16.c
+		font_fixed_8x16.c \
+		kfifo.c \
+		ipc.c
 endif
 
 include $(PATH_HACKRF_FIRMWARE_COMMON)/Makefile_inc.mk
