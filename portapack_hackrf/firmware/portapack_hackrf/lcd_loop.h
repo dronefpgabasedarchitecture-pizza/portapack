@@ -24,8 +24,6 @@
 
 #include <stdint.h>
 
-uint32_t* const switches_state = (uint32_t*)0x200070f0;
-
 typedef struct device_state_t {
 	int64_t tuned_hz;
 	int8_t lna_gain_db;

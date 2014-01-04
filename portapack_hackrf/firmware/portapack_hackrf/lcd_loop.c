@@ -76,12 +76,14 @@ static void draw_cycles(const uint_fast16_t x, const uint_fast16_t y) {
 	draw_field_percent(device_state->duration_all_millipercent, "CPU   %3d.%01d%%", x, y + 96);
 }
 
-void handle_joysticks() {
+static void handle_joysticks() {
+	const uint32_t switches = lcd_data_read_switches();
+
 	const uint_fast8_t switches_incr
-		= ((*switches_state & SWITCH_S1_LEFT) ? 8 : 0)
-		| ((*switches_state & SWITCH_S2_LEFT) ? 4 : 0)
-		| ((*switches_state & SWITCH_S1_RIGHT) ? 2 : 0)
-		| ((*switches_state & SWITCH_S2_RIGHT) ? 1 : 0)
+		= ((switches & SWITCH_S1_LEFT) ? 8 : 0)
+		| ((switches & SWITCH_S2_LEFT) ? 4 : 0)
+		| ((switches & SWITCH_S1_RIGHT) ? 2 : 0)
+		| ((switches & SWITCH_S2_RIGHT) ? 1 : 0)
 		;
 
 	int32_t increment = 0;
@@ -98,11 +100,11 @@ void handle_joysticks() {
 		ipc_command_set_frequency(device_state->tuned_hz + (increment * 25000));
 	}
 
-	if( *switches_state & SWITCH_S2_UP ) {
+	if( switches & SWITCH_S2_UP ) {
 		ipc_command_set_if_gain(device_state->if_gain_db + 8);
 	}
 
-	if( *switches_state & SWITCH_S2_DOWN ) {
+	if( switches & SWITCH_S2_DOWN ) {
 		ipc_command_set_if_gain(device_state->if_gain_db - 8);
 	}
 }
@@ -130,9 +132,6 @@ int main() {
 		draw_field_int(device_state->bb_gain_db,  "BB  %2d dB",      0, 96);
 
 		draw_cycles(0, 128);
-
-		const uint32_t switches = lcd_data_read_switches();
-		*switches_state = switches;
 
 		while( lcd_get_scanline() < 200 );
 		while( lcd_get_scanline() >= 200 );
