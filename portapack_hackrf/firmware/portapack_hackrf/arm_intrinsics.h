@@ -203,6 +203,18 @@ __attribute__((always_inline)) static inline uint32_t __SXTAH(uint32_t RN, uint3
 	return RD;
 }
 
+__attribute__((always_inline)) static inline void __ISB() {
+	__asm volatile("isb" : : : "memory");
+}
+
+__attribute__((always_inline)) static inline void __DSB() {
+	__asm volatile("dsb" : : : "memory");
+}
+
+__attribute__((always_inline)) static inline void __DMB() {
+	__asm volatile("dmb" : : : "memory");
+}
+
 __attribute__((always_inline)) static inline void __SEV() {
 	__asm volatile("sev" : : : "memory");
 }
