@@ -334,7 +334,7 @@ static void handle_joysticks() {
 		ui_field_navigate_left();
 	}
 
-	if( switches & SWITCH_S2_DOWN ) {
+	if( switches & SWITCH_S2_RIGHT ) {
 		ui_field_navigate_right();
 	}
 }
