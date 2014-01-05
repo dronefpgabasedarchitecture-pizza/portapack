@@ -82,7 +82,7 @@ void portapack_audio_init() {
 #endif
 
 	portapack_codec_init();
-	portapack_audio_out_volume_set(-18);
+	portapack_audio_out_volume_set(-120);
 
 	portapack_i2s_init();
 }
