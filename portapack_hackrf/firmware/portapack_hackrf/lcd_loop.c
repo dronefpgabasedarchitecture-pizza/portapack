@@ -38,14 +38,14 @@ void delay(uint32_t duration)
 		__asm__("nop");
 }
 
-static void draw_field_int(int32_t value, const char* const format, uint_fast16_t x, uint_fast16_t y) {
+static void draw_int(int32_t value, const char* const format, uint_fast16_t x, uint_fast16_t y) {
 	char temp[80];
 	const size_t temp_len = 79;
 	const size_t text_len = snprintf(temp, temp_len, format, value);
 	lcd_draw_string(x, y, temp, min(text_len, temp_len));
 }
 
-static void draw_field_mhz(int64_t value, const char* const format, uint_fast16_t x, uint_fast16_t y) {
+static void draw_mhz(int64_t value, const char* const format, uint_fast16_t x, uint_fast16_t y) {
 	char temp[80];
 	const size_t temp_len = 79;
 	const int32_t value_mhz = value / 1000000;
@@ -54,7 +54,7 @@ static void draw_field_mhz(int64_t value, const char* const format, uint_fast16_
 	lcd_draw_string(x, y, temp, min(text_len, temp_len));
 }
 
-static void draw_field_percent(int32_t value_millipercent, const char* const format, uint_fast16_t x, uint_fast16_t y) {
+static void draw_percent(int32_t value_millipercent, const char* const format, uint_fast16_t x, uint_fast16_t y) {
 	char temp[80];
 	const size_t temp_len = 79;
 	const int32_t value_units = value_millipercent / 1000;
@@ -68,12 +68,62 @@ static void draw_cycles(const uint_fast16_t x, const uint_fast16_t y) {
 	lcd_draw_string(x, y, "Cycle Count ", 12);
 	lcd_colors_invert();
 
-	draw_field_int(device_state->duration_decimate,       "Decim %6d", x, y + 16);
-	draw_field_int(device_state->duration_channel_filter, "Chan  %6d", x, y + 32);
-	draw_field_int(device_state->duration_demodulate,     "Demod %6d", x, y + 48);
-	draw_field_int(device_state->duration_audio,          "Audio %6d", x, y + 64);
-	draw_field_int(device_state->duration_all,            "Total %6d", x, y + 80);
-	draw_field_percent(device_state->duration_all_millipercent, "CPU   %3d.%01d%%", x, y + 96);
+	draw_int(device_state->duration_decimate,       "Decim %6d", x, y + 16);
+	draw_int(device_state->duration_channel_filter, "Chan  %6d", x, y + 32);
+	draw_int(device_state->duration_demodulate,     "Demod %6d", x, y + 48);
+	draw_int(device_state->duration_audio,          "Audio %6d", x, y + 64);
+	draw_int(device_state->duration_all,            "Total %6d", x, y + 80);
+	draw_percent(device_state->duration_all_millipercent, "CPU   %3d.%01d%%", x, y + 96);
+}
+
+struct ui_field_text_t;
+typedef struct ui_field_text_t ui_field_text_t;
+
+struct ui_field_text_t {
+	uint_fast16_t x;
+	uint_fast16_t y;
+	const char* const format;
+	const void* (*getter)();
+	void (*render)(const ui_field_text_t* const);
+};
+
+static void render_field_mhz(const ui_field_text_t* const field) {
+	const int64_t value = *((int64_t*)field->getter());
+	draw_mhz(value, field->format, field->x, field->y);
+}
+
+static void render_field_int(const ui_field_text_t* const field) {
+	const int32_t value = *((int32_t*)field->getter());
+	draw_int(value, field->format, field->x, field->y);
+}
+
+static const void* get_tuned_hz() {
+	return &device_state->tuned_hz;
+}
+
+static const void* get_lna_gain() {
+	return &device_state->lna_gain_db;
+}
+
+static const void* get_if_gain() {
+	return &device_state->if_gain_db;
+}
+
+static const void* get_bb_gain() {
+	return &device_state->bb_gain_db;
+}
+
+static ui_field_text_t fields[] = {
+	{ .x = 0, .y = 32, .format = "%4d.%03d MHz", .getter = get_tuned_hz, .render = render_field_mhz },
+	{ .x = 0, .y = 64, .format = "LNA %2d dB",   .getter = get_lna_gain, .render = render_field_int },
+	{ .x = 0, .y = 80, .format = "IF  %2d dB",   .getter = get_if_gain,  .render = render_field_int },
+	{ .x = 0, .y = 96, .format = "BB  %2d dB",   .getter = get_bb_gain,  .render = render_field_int }
+};
+
+static void render_fields(const ui_field_text_t* const fields, const size_t count) {
+	for(size_t i=0; i<count; i++) {
+		fields[i].render(&fields[i]);
+	}
 }
 
 static void handle_joysticks() {
@@ -137,10 +187,7 @@ int main() {
 	uint32_t frame = 0;
 	
 	while(1) {
-		draw_field_mhz(device_state->tuned_hz,    "%4d.%03d MHz", 0, 32);
-		draw_field_int(device_state->lna_gain_db, "LNA %2d dB",      0, 64);
-		draw_field_int(device_state->if_gain_db,  "IF  %2d dB",      0, 80);
-		draw_field_int(device_state->bb_gain_db,  "BB  %2d dB",      0, 96);
+		render_fields(fields, ARRAY_SIZE(fields));
 
 		draw_cycles(0, 128);
 
@@ -151,7 +198,7 @@ int main() {
 		handle_joysticks();
 
 		frame += 1;
-		draw_field_int(frame, "%8d", 256, 0);
+		draw_int(frame, "%8d", 256, 0);
 	}
 
 	return 0;
