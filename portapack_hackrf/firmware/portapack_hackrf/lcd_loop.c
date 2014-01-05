@@ -79,9 +79,32 @@ static void draw_cycles(const uint_fast16_t x, const uint_fast16_t y) {
 struct ui_field_text_t;
 typedef struct ui_field_text_t ui_field_text_t;
 
+typedef enum {
+	UI_FIELD_FREQUENCY,
+	UI_FIELD_LNA_GAIN,
+	UI_FIELD_IF_GAIN,
+	UI_FIELD_BB_GAIN,
+} ui_field_index_t;
+
+typedef struct ui_field_navigation_t {
+	ui_field_index_t up;
+	ui_field_index_t down;
+	ui_field_index_t left;
+	ui_field_index_t right;
+} ui_field_navigation_t;
+
+typedef void (*ui_field_value_change_callback_t)(const int32_t amount);
+
+typedef struct ui_field_value_change_t {
+	ui_field_value_change_callback_t up;
+	ui_field_value_change_callback_t down;
+} ui_field_value_change_t;
+
 struct ui_field_text_t {
 	uint_fast16_t x;
 	uint_fast16_t y;
+	ui_field_navigation_t navigation;
+	ui_field_value_change_t value_change;
 	const char* const format;
 	const void* (*getter)();
 	void (*render)(const ui_field_text_t* const);
@@ -113,16 +136,151 @@ static const void* get_bb_gain() {
 	return &device_state->bb_gain_db;
 }
 
+static void ui_field_value_up_frequency(const int32_t amount) {
+	ipc_command_set_frequency(device_state->tuned_hz + (amount * 25000));
+}
+
+static void ui_field_value_down_frequency(const int32_t amount) {
+	ipc_command_set_frequency(device_state->tuned_hz - (amount * 25000));
+}
+
+static void ui_field_value_up_if_gain(const int32_t amount) {
+	ipc_command_set_if_gain(device_state->if_gain_db + (amount * 8));
+}
+
+static void ui_field_value_down_if_gain(const int32_t amount) {
+	ipc_command_set_if_gain(device_state->if_gain_db - (amount * 8));
+}
+
 static ui_field_text_t fields[] = {
-	{ .x = 0, .y = 32, .format = "%4d.%03d MHz", .getter = get_tuned_hz, .render = render_field_mhz },
-	{ .x = 0, .y = 64, .format = "LNA %2d dB",   .getter = get_lna_gain, .render = render_field_int },
-	{ .x = 0, .y = 80, .format = "IF  %2d dB",   .getter = get_if_gain,  .render = render_field_int },
-	{ .x = 0, .y = 96, .format = "BB  %2d dB",   .getter = get_bb_gain,  .render = render_field_int }
+	[UI_FIELD_FREQUENCY] = {
+		.x = 0, .y = 32,
+		.navigation = {
+			.up = UI_FIELD_BB_GAIN,
+			.down = UI_FIELD_LNA_GAIN,
+			.left = UI_FIELD_FREQUENCY,
+			.right = UI_FIELD_FREQUENCY,
+		},
+		.value_change = {
+			.up = ui_field_value_up_frequency,
+			.down = ui_field_value_down_frequency,
+		},
+	  	.format = "%4d.%03d MHz",
+	  	.getter = get_tuned_hz,
+	  	.render = render_field_mhz
+	},
+	[UI_FIELD_LNA_GAIN] = {
+		.x = 0, .y = 64,
+		.navigation = {
+			.up = UI_FIELD_FREQUENCY,
+			.down = UI_FIELD_IF_GAIN,
+			.left = UI_FIELD_LNA_GAIN,
+			.right = UI_FIELD_LNA_GAIN,
+		},
+		.value_change = {
+			.up = NULL,
+			.down = NULL,
+		},
+		.format = "LNA %2d dB",
+		.getter = get_lna_gain,
+		.render = render_field_int
+	},
+	[UI_FIELD_IF_GAIN] = {
+		.x = 0, .y = 80,
+		.navigation = {
+			.up = UI_FIELD_LNA_GAIN,
+			.down = UI_FIELD_BB_GAIN,
+			.left = UI_FIELD_IF_GAIN,
+			.right = UI_FIELD_IF_GAIN,
+		},
+		.value_change = {
+			.up = ui_field_value_up_if_gain,
+			.down = ui_field_value_down_if_gain,
+		},
+		.format = "IF  %2d dB",
+		.getter = get_if_gain,
+		.render = render_field_int
+	},
+	[UI_FIELD_BB_GAIN] = {
+		.x = 0, .y = 96,
+		.navigation = {
+			.up = UI_FIELD_IF_GAIN,
+			.down = UI_FIELD_FREQUENCY,
+			.left = UI_FIELD_BB_GAIN,
+			.right = UI_FIELD_BB_GAIN,
+		},
+		.value_change = {
+			.up = NULL,
+			.down = NULL,
+		},
+		.format = "BB  %2d dB",
+		.getter = get_bb_gain,
+		.render = render_field_int
+	}
 };
 
-static void render_fields(const ui_field_text_t* const fields, const size_t count) {
-	for(size_t i=0; i<count; i++) {
-		fields[i].render(&fields[i]);
+static ui_field_index_t selected_field = UI_FIELD_FREQUENCY;
+
+static void ui_field_render(const ui_field_index_t field) {
+	if( field == selected_field ) {
+		lcd_colors_invert();
+	}
+
+	fields[field].render(&fields[field]);
+
+	if( field == selected_field ) {
+		lcd_colors_invert();
+	}
+}
+
+static void ui_field_lose_focus(const ui_field_index_t field) {
+	ui_field_render(field);
+}
+
+static void ui_field_gain_focus(const ui_field_index_t field) {
+	ui_field_render(field);
+}
+
+static void ui_field_update_focus(const ui_field_index_t focus_field) {
+	const ui_field_index_t old_field = selected_field;
+	selected_field = focus_field;
+	ui_field_lose_focus(old_field);
+	ui_field_gain_focus(selected_field);
+}
+
+static void ui_field_navigate_up() {
+	ui_field_update_focus(fields[selected_field].navigation.up);
+}
+
+static void ui_field_navigate_down() {
+	ui_field_update_focus(fields[selected_field].navigation.down);
+}
+
+static void ui_field_navigate_left() {
+	ui_field_update_focus(fields[selected_field].navigation.left);
+}
+
+static void ui_field_navigate_right() {
+	ui_field_update_focus(fields[selected_field].navigation.right);
+}
+
+static void ui_field_value_up(const int32_t amount) {
+	ui_field_value_change_callback_t fn = fields[selected_field].value_change.up;
+	if( fn != NULL ) {
+		fn(amount);
+	}
+}
+
+static void ui_field_value_down(const int32_t amount) {
+	ui_field_value_change_callback_t fn = fields[selected_field].value_change.down;
+	if( fn != NULL ) {
+		fn(amount);
+	}
+}
+
+static void ui_render_fields() {
+	for(size_t i=0; i<ARRAY_SIZE(fields); i++) {
+		ui_field_render(i);
 	}
 }
 
@@ -140,33 +298,28 @@ static void handle_joysticks() {
 	const uint32_t switches = switches_event & switches_now;
 	switches_last = switches_now;
 
-	const uint_fast8_t switches_incr
-		= ((switches & SWITCH_S1_LEFT) ? 8 : 0)
-		| ((switches & SWITCH_S2_LEFT) ? 4 : 0)
-		| ((switches & SWITCH_S1_RIGHT) ? 2 : 0)
-		| ((switches & SWITCH_S2_RIGHT) ? 1 : 0)
-		;
-
-	int32_t increment = 0;
-	switch( switches_incr ) {
-	case 1:  increment = 1;    break;
-	case 2:  increment = 10;   break;
-	case 3:  increment = 100;  break;
-	case 4:  increment = -1;   break;
-	case 8:  increment = -10;  break;
-	case 12: increment = -100; break;
+	if( switches & SWITCH_S1_UP ) {
+		ui_field_value_up(1);
 	}
 
-	if( increment != 0 ) {
-		ipc_command_set_frequency(device_state->tuned_hz + (increment * 25000));
+	if( switches & SWITCH_S1_DOWN ) {
+		ui_field_value_down(1);
 	}
 
 	if( switches & SWITCH_S2_UP ) {
-		ipc_command_set_if_gain(device_state->if_gain_db + 8);
+		ui_field_navigate_up();
 	}
 
 	if( switches & SWITCH_S2_DOWN ) {
-		ipc_command_set_if_gain(device_state->if_gain_db - 8);
+		ui_field_navigate_down();
+	}
+
+	if( switches & SWITCH_S2_LEFT ) {
+		ui_field_navigate_left();
+	}
+
+	if( switches & SWITCH_S2_DOWN ) {
+		ui_field_navigate_right();
 	}
 }
 
@@ -187,7 +340,7 @@ int main() {
 	uint32_t frame = 0;
 	
 	while(1) {
-		render_fields(fields, ARRAY_SIZE(fields));
+		ui_render_fields();
 
 		draw_cycles(0, 128);
 
