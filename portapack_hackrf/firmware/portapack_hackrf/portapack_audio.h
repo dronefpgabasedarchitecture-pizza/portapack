@@ -28,6 +28,6 @@
 void portapack_audio_init();
 void portapack_audio_codec_write(const uint_fast8_t address, const uint_fast16_t data);
 
-void portapack_audio_out_volume_set(const int_fast8_t db);
+int_fast8_t portapack_audio_out_volume_set(const int_fast8_t db);
 
 #endif/*__PORTAPACK_AUDIO_H__*/

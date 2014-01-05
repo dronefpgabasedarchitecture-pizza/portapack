@@ -57,7 +57,7 @@ void portapack_codec_init() {
 	portapack_audio_codec_write(0x1, 0x17);
 }
 
-void portapack_audio_out_volume_set(int_fast8_t db) {
+int_fast8_t portapack_audio_out_volume_set(int_fast8_t db) {
 	if( db > 6 ) {
 		db = 6;
 	}
@@ -66,6 +66,7 @@ void portapack_audio_out_volume_set(int_fast8_t db) {
 	}
 	const uint_fast16_t v = db + 121;
 	portapack_audio_codec_write(0x2, v | (1 << 7) | (1 << 8));
+	return db;
 }
 
 void portapack_audio_out_mute() {
