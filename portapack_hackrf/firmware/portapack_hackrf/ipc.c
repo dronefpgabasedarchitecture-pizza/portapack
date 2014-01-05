@@ -43,9 +43,27 @@ void ipc_command_set_frequency(int64_t value_hz) {
 	__SEV();
 }
 
+void ipc_command_set_rf_gain(int32_t value_db) {
+	ipc_command_set_rf_gain_t command = {
+		.id = IPC_COMMAND_ID_SET_RF_GAIN,
+		.gain_db = value_db
+	};
+	kfifo_in(ipc_fifo, &command, sizeof(command));
+	__SEV();
+}
+
 void ipc_command_set_if_gain(int32_t value_db) {
 	ipc_command_set_if_gain_t command = {
 		.id = IPC_COMMAND_ID_SET_IF_GAIN,
+		.gain_db = value_db
+	};
+	kfifo_in(ipc_fifo, &command, sizeof(command));
+	__SEV();
+}
+
+void ipc_command_set_bb_gain(int32_t value_db) {
+	ipc_command_set_bb_gain_t command = {
+		.id = IPC_COMMAND_ID_SET_BB_GAIN,
 		.gain_db = value_db
 	};
 	kfifo_in(ipc_fifo, &command, sizeof(command));

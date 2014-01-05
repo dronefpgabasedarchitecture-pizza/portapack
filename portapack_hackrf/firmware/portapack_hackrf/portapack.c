@@ -497,10 +497,24 @@ void handle_command_none(const void* const command) {
 	(void)command;
 }
 
+void handle_command_set_rf_gain(const void* const arg) {
+	const ipc_command_set_rf_gain_t* const command = arg;
+	const bool rf_lna_enable = (command->gain_db >= 14);
+	rf_path_set_lna(rf_lna_enable);
+	device_state->lna_gain_db = rf_lna_enable ? 14 : 0;
+}
+
 void handle_command_set_if_gain(const void* const arg) {
 	const ipc_command_set_if_gain_t* const command = arg;
 	if( max2837_set_lna_gain(command->gain_db) ) {
 		device_state->if_gain_db = command->gain_db;
+	}
+}
+
+void handle_command_set_bb_gain(const void* const arg) {
+	const ipc_command_set_bb_gain_t* const command = arg;
+	if( max2837_set_vga_gain(command->gain_db) ) {
+		device_state->bb_gain_db = command->gain_db;
 	}
 }
 
@@ -515,7 +529,9 @@ typedef void (*command_handler_t)(const void* const command);
 
 static command_handler_t command_handler[] = {
 	[IPC_COMMAND_ID_NONE] = handle_command_none,
+	[IPC_COMMAND_ID_SET_RF_GAIN] = handle_command_set_rf_gain,
 	[IPC_COMMAND_ID_SET_IF_GAIN] = handle_command_set_if_gain,
+	[IPC_COMMAND_ID_SET_BB_GAIN] = handle_command_set_bb_gain,
 	[IPC_COMMAND_ID_SET_FREQUENCY] = handle_command_set_frequency
 };
 static const size_t command_handler_count = sizeof(command_handler) / sizeof(command_handler[0]);

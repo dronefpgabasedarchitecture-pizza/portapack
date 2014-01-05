@@ -144,12 +144,28 @@ static void ui_field_value_down_frequency(const int32_t amount) {
 	ipc_command_set_frequency(device_state->tuned_hz - (amount * 25000));
 }
 
+static void ui_field_value_up_rf_gain(const int32_t amount) {
+	ipc_command_set_rf_gain(device_state->lna_gain_db + (amount * 14));
+}
+
+static void ui_field_value_down_rf_gain(const int32_t amount) {
+	ipc_command_set_rf_gain(device_state->lna_gain_db - (amount * 14));
+}
+
 static void ui_field_value_up_if_gain(const int32_t amount) {
 	ipc_command_set_if_gain(device_state->if_gain_db + (amount * 8));
 }
 
 static void ui_field_value_down_if_gain(const int32_t amount) {
 	ipc_command_set_if_gain(device_state->if_gain_db - (amount * 8));
+}
+
+static void ui_field_value_up_bb_gain(const int32_t amount) {
+	ipc_command_set_bb_gain(device_state->bb_gain_db + (amount * 2));
+}
+
+static void ui_field_value_down_bb_gain(const int32_t amount) {
+	ipc_command_set_bb_gain(device_state->bb_gain_db - (amount * 2));
 }
 
 static ui_field_text_t fields[] = {
@@ -178,8 +194,8 @@ static ui_field_text_t fields[] = {
 			.right = UI_FIELD_LNA_GAIN,
 		},
 		.value_change = {
-			.up = NULL,
-			.down = NULL,
+			.up = ui_field_value_up_rf_gain,
+			.down = ui_field_value_down_rf_gain,
 		},
 		.format = "LNA %2d dB",
 		.getter = get_lna_gain,
@@ -210,8 +226,8 @@ static ui_field_text_t fields[] = {
 			.right = UI_FIELD_BB_GAIN,
 		},
 		.value_change = {
-			.up = NULL,
-			.down = NULL,
+			.up = ui_field_value_up_bb_gain,
+			.down = ui_field_value_down_bb_gain,
 		},
 		.format = "BB  %2d dB",
 		.getter = get_bb_gain,
