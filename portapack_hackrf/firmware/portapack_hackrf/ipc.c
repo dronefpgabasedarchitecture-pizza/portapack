@@ -70,6 +70,15 @@ void ipc_command_set_bb_gain(int32_t value_db) {
 	__SEV();
 }
 
+void ipc_command_set_audio_out_gain(int32_t value_db) {
+	ipc_command_set_audio_out_gain_t command = {
+		.id = IPC_COMMAND_ID_SET_AUDIO_OUT_GAIN,
+		.gain_db = value_db
+	};
+	kfifo_in(ipc_fifo, &command, sizeof(command));
+	__SEV();
+}
+
 int ipc_queue_is_empty() {
 	return kfifo_is_empty(ipc_fifo);
 }
