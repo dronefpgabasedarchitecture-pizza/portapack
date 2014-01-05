@@ -432,11 +432,14 @@ void portapack_init() {
 	device_state->lna_gain_db = 0;
 	device_state->if_gain_db = 24;
 	device_state->bb_gain_db = 16;
+	device_state->audio_out_gain_db = -18;
 
 	set_frequency(device_state->tuned_hz);
 	rf_path_set_lna((device_state->lna_gain_db >= 14) ? 1 : 0);
 	max2837_set_lna_gain(device_state->if_gain_db);	/* 8dB increments */
 	max2837_set_vga_gain(device_state->bb_gain_db);	/* 2dB increments, up to 62dB */
+
+	portapack_audio_out_volume_set(device_state->audio_out_gain_db);
 
 	m0_load_code_from_m4_text();
 	m0_run();
@@ -525,6 +528,11 @@ void handle_command_set_frequency(const void* const arg) {
 	}
 }
 
+void handle_command_set_audio_out_gain(const void* const arg) {
+	const ipc_command_set_audio_out_gain_t* const command = arg;
+	device_state->audio_out_gain_db = portapack_audio_out_volume_set(command->gain_db);
+}
+
 typedef void (*command_handler_t)(const void* const command);
 
 static command_handler_t command_handler[] = {
@@ -532,7 +540,8 @@ static command_handler_t command_handler[] = {
 	[IPC_COMMAND_ID_SET_RF_GAIN] = handle_command_set_rf_gain,
 	[IPC_COMMAND_ID_SET_IF_GAIN] = handle_command_set_if_gain,
 	[IPC_COMMAND_ID_SET_BB_GAIN] = handle_command_set_bb_gain,
-	[IPC_COMMAND_ID_SET_FREQUENCY] = handle_command_set_frequency
+	[IPC_COMMAND_ID_SET_FREQUENCY] = handle_command_set_frequency,
+	[IPC_COMMAND_ID_SET_AUDIO_OUT_GAIN] = handle_command_set_audio_out_gain,
 };
 static const size_t command_handler_count = sizeof(command_handler) / sizeof(command_handler[0]);
 

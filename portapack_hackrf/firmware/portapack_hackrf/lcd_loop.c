@@ -84,6 +84,7 @@ typedef enum {
 	UI_FIELD_LNA_GAIN,
 	UI_FIELD_IF_GAIN,
 	UI_FIELD_BB_GAIN,
+	UI_FIELD_AUDIO_OUT_GAIN,
 } ui_field_index_t;
 
 typedef struct ui_field_navigation_t {
@@ -136,6 +137,10 @@ static const void* get_bb_gain() {
 	return &device_state->bb_gain_db;
 }
 
+static const void* get_audio_out_gain() {
+	return &device_state->audio_out_gain_db;
+}
+
 static void ui_field_value_up_frequency(const int32_t amount) {
 	ipc_command_set_frequency(device_state->tuned_hz + (amount * 25000));
 }
@@ -168,6 +173,14 @@ static void ui_field_value_down_bb_gain(const int32_t amount) {
 	ipc_command_set_bb_gain(device_state->bb_gain_db - (amount * 2));
 }
 
+static void ui_field_value_up_audio_out_gain(const int32_t amount) {
+	ipc_command_set_audio_out_gain(device_state->audio_out_gain_db + (amount * 1));
+}
+
+static void ui_field_value_down_audio_out_gain(const int32_t amount) {
+	ipc_command_set_audio_out_gain(device_state->audio_out_gain_db - (amount * 1));
+}
+
 static ui_field_text_t fields[] = {
 	[UI_FIELD_FREQUENCY] = {
 		.x = 0, .y = 32,
@@ -175,7 +188,7 @@ static ui_field_text_t fields[] = {
 			.up = UI_FIELD_BB_GAIN,
 			.down = UI_FIELD_LNA_GAIN,
 			.left = UI_FIELD_FREQUENCY,
-			.right = UI_FIELD_FREQUENCY,
+			.right = UI_FIELD_AUDIO_OUT_GAIN,
 		},
 		.value_change = {
 			.up = ui_field_value_up_frequency,
@@ -191,7 +204,7 @@ static ui_field_text_t fields[] = {
 			.up = UI_FIELD_FREQUENCY,
 			.down = UI_FIELD_IF_GAIN,
 			.left = UI_FIELD_LNA_GAIN,
-			.right = UI_FIELD_LNA_GAIN,
+			.right = UI_FIELD_AUDIO_OUT_GAIN,
 		},
 		.value_change = {
 			.up = ui_field_value_up_rf_gain,
@@ -207,7 +220,7 @@ static ui_field_text_t fields[] = {
 			.up = UI_FIELD_LNA_GAIN,
 			.down = UI_FIELD_BB_GAIN,
 			.left = UI_FIELD_IF_GAIN,
-			.right = UI_FIELD_IF_GAIN,
+			.right = UI_FIELD_AUDIO_OUT_GAIN,
 		},
 		.value_change = {
 			.up = ui_field_value_up_if_gain,
@@ -223,7 +236,7 @@ static ui_field_text_t fields[] = {
 			.up = UI_FIELD_IF_GAIN,
 			.down = UI_FIELD_FREQUENCY,
 			.left = UI_FIELD_BB_GAIN,
-			.right = UI_FIELD_BB_GAIN,
+			.right = UI_FIELD_AUDIO_OUT_GAIN,
 		},
 		.value_change = {
 			.up = ui_field_value_up_bb_gain,
@@ -231,6 +244,22 @@ static ui_field_text_t fields[] = {
 		},
 		.format = "BB  %2d dB",
 		.getter = get_bb_gain,
+		.render = render_field_int
+	},
+	[UI_FIELD_AUDIO_OUT_GAIN] = {
+		.x = 240, .y = 32,
+		.navigation = {
+			.up = UI_FIELD_BB_GAIN,
+			.down = UI_FIELD_LNA_GAIN,
+			.left = UI_FIELD_FREQUENCY,
+			.right = UI_FIELD_AUDIO_OUT_GAIN,
+		},
+		.value_change = {
+			.up = ui_field_value_up_audio_out_gain,
+			.down = ui_field_value_down_audio_out_gain,
+		},
+		.format = "Vol %3d dB",
+		.getter = get_audio_out_gain,
 		.render = render_field_int
 	}
 };
