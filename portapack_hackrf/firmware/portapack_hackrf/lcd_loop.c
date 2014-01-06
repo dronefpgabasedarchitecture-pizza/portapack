@@ -338,6 +338,61 @@ static uint32_t ui_frame_difference(const uint32_t frame1, const uint32_t frame2
 static const uint32_t ui_switch_repeat_after = 45;
 static const uint32_t ui_switch_repeat_rate = 15;
 
+typedef struct ui_switch_t {
+	uint32_t mask;
+	uint32_t time_on;
+	void (*action)(const uint32_t on_duration);
+} ui_switch_t;
+
+void switch_s1_up(const uint32_t on_duration) {
+	ui_field_value_up(1);
+}
+
+void switch_s1_down(const uint32_t on_duration) {
+	ui_field_value_down(1);
+}
+
+void switch_s1_left(const uint32_t on_duration) {
+}
+
+void switch_s1_right(const uint32_t on_duration) {
+}
+
+void switch_s1_select(const uint32_t on_duration) {
+}
+
+void switch_s2_up(const uint32_t on_duration) {
+	ui_field_navigate_up();
+}
+
+void switch_s2_down(const uint32_t on_duration) {
+	ui_field_navigate_down();
+}
+
+void switch_s2_left(const uint32_t on_duration) {
+	ui_field_navigate_left();
+}
+
+void switch_s2_right(const uint32_t on_duration) {
+	ui_field_navigate_right();
+}
+
+void switch_s2_select(const uint32_t on_duration) {
+}
+
+static ui_switch_t switches[] = {
+	{ .mask = SWITCH_S1_UP,     .action = switch_s1_up },
+	{ .mask = SWITCH_S1_DOWN,   .action = switch_s1_down },
+	{ .mask = SWITCH_S1_LEFT,   .action = switch_s1_left },
+	{ .mask = SWITCH_S1_RIGHT,  .action = switch_s1_right },
+	{ .mask = SWITCH_S1_SELECT, .action = switch_s1_select },
+	{ .mask = SWITCH_S2_UP,     .action = switch_s2_up },
+	{ .mask = SWITCH_S2_DOWN,   .action = switch_s2_down },
+	{ .mask = SWITCH_S2_LEFT,   .action = switch_s2_left },
+	{ .mask = SWITCH_S2_RIGHT,  .action = switch_s2_right },
+	{ .mask = SWITCH_S2_SELECT, .action = switch_s2_select },
+};
+
 static void handle_joysticks() {
 	static uint32_t switches_history[3] = { 0, 0, 0 };
 	static uint32_t switches_last = 0;
@@ -353,51 +408,22 @@ static void handle_joysticks() {
 	const uint32_t switches_event_off = switches_event & switches_last;
 	switches_last = switches_now;
 
-	static uint32_t switch_value_up_time_on = 0;
-	static uint32_t switch_value_down_time_on = 0;
-
-	if( switches_event_on & SWITCH_S1_UP ) {
-		switch_value_up_time_on = ui_frame;
-		ui_field_value_up(1);
-	}
-
-	if( switches_event_on & SWITCH_S1_DOWN ) {
-		switch_value_down_time_on = ui_frame;
-		ui_field_value_down(1);
-	}
-
-	if( switches_event_on & SWITCH_S2_UP ) {
-		ui_field_navigate_up();
-	}
-
-	if( switches_event_on & SWITCH_S2_DOWN ) {
-		ui_field_navigate_down();
-	}
-
-	if( switches_event_on & SWITCH_S2_LEFT ) {
-		ui_field_navigate_left();
-	}
-
-	if( switches_event_on & SWITCH_S2_RIGHT ) {
-		ui_field_navigate_right();
-	}
-
-	if( switches_now & SWITCH_S1_UP ) {
-		const uint32_t frames_since_on = ui_frame_difference(switch_value_up_time_on, ui_frame);
-		if( frames_since_on >= ui_switch_repeat_after ) {
-			const uint32_t frames_since_first_repeat = frames_since_on - ui_switch_repeat_after;
-			if( (frames_since_first_repeat % ui_switch_repeat_rate) == 0 ) {
-				ui_field_value_up(1);
+	for(size_t i=0; i<ARRAY_SIZE(switches); i++) {
+		ui_switch_t* const sw = &switches[i];
+		if( sw->action != NULL ) {
+			if( switches_event_on & sw->mask ) {
+				sw->time_on = ui_frame;
+				sw->action(0);
 			}
-		}
-	}
 
-	if( switches_now & SWITCH_S1_DOWN ) {
-		const uint32_t frames_since_on = ui_frame_difference(switch_value_down_time_on, ui_frame);
-		if( frames_since_on >= ui_switch_repeat_after ) {
-			const uint32_t frames_since_first_repeat = frames_since_on - ui_switch_repeat_after;
-			if( (frames_since_first_repeat % ui_switch_repeat_rate) == 0 ) {
-				ui_field_value_down(1);
+			if( switches_now & sw->mask ) {
+				const uint32_t frames_since_on = ui_frame_difference(sw->time_on, ui_frame);
+				if( frames_since_on >= ui_switch_repeat_after ) {
+					const uint32_t frames_since_first_repeat = frames_since_on - ui_switch_repeat_after;
+					if( (frames_since_first_repeat % ui_switch_repeat_rate) == 0 ) {
+						sw->action(frames_since_on);
+					}
+				}
 			}
 		}
 	}
