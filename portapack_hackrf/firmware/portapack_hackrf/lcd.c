@@ -190,6 +190,14 @@ uint_fast16_t lcd_get_scanline() {
 	return (gts_h << 8) | gts_l;
 }
 
+void lcd_frame_sync() {
+	// TODO: Kinda hacky and arbitrary.
+	// TODO: Is the frame sync electrical signal available on some
+	// variants of the LCD?
+	while( lcd_get_scanline() < 200 );
+	while( lcd_get_scanline() >= 200 );
+}
+
 const lcd_color_t color_black = { .r =   0, .g =   0, .b =   0 };
 const lcd_color_t color_blue  = { .r =   0, .g =   0, .b = 255 };
 const lcd_color_t color_white = { .r = 255, .g = 255, .b = 255 };

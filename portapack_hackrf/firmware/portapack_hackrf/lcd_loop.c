@@ -448,8 +448,7 @@ int main() {
 
 		draw_cycles(0, 128);
 
-		while( lcd_get_scanline() < 200 );
-		while( lcd_get_scanline() >= 200 );
+		lcd_frame_sync();
 
 		while( !ipc_queue_is_empty() );
 		handle_joysticks();
