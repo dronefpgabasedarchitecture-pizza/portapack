@@ -331,6 +331,13 @@ static void ui_render_fields() {
 
 static uint32_t ui_frame = 0;
 
+static uint32_t ui_frame_difference(const uint32_t frame1, const uint32_t frame2) {
+	return frame2 - frame1;
+}
+
+static const uint32_t ui_switch_repeat_after = 45;
+static const uint32_t ui_switch_repeat_rate = 15;
+
 static void handle_joysticks() {
 	static uint32_t switches_history[3] = { 0, 0, 0 };
 	static uint32_t switches_last = 0;
@@ -346,11 +353,16 @@ static void handle_joysticks() {
 	const uint32_t switches_event_off = switches_event & switches_last;
 	switches_last = switches_now;
 
+	static uint32_t switch_value_up_time_on = 0;
+	static uint32_t switch_value_down_time_on = 0;
+
 	if( switches_event_on & SWITCH_S1_UP ) {
+		switch_value_up_time_on = ui_frame;
 		ui_field_value_up(1);
 	}
 
 	if( switches_event_on & SWITCH_S1_DOWN ) {
+		switch_value_down_time_on = ui_frame;
 		ui_field_value_down(1);
 	}
 
@@ -368,6 +380,26 @@ static void handle_joysticks() {
 
 	if( switches_event_on & SWITCH_S2_RIGHT ) {
 		ui_field_navigate_right();
+	}
+
+	if( switches_now & SWITCH_S1_UP ) {
+		const uint32_t frames_since_on = ui_frame_difference(switch_value_up_time_on, ui_frame);
+		if( frames_since_on >= ui_switch_repeat_after ) {
+			const uint32_t frames_since_first_repeat = frames_since_on - ui_switch_repeat_after;
+			if( (frames_since_first_repeat % ui_switch_repeat_rate) == 0 ) {
+				ui_field_value_up(1);
+			}
+		}
+	}
+
+	if( switches_now & SWITCH_S1_DOWN ) {
+		const uint32_t frames_since_on = ui_frame_difference(switch_value_down_time_on, ui_frame);
+		if( frames_since_on >= ui_switch_repeat_after ) {
+			const uint32_t frames_since_first_repeat = frames_since_on - ui_switch_repeat_after;
+			if( (frames_since_first_repeat % ui_switch_repeat_rate) == 0 ) {
+				ui_field_value_down(1);
+			}
+		}
 	}
 }
 
