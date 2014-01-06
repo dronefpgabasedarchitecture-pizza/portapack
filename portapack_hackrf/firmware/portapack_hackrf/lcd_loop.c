@@ -329,6 +329,8 @@ static void ui_render_fields() {
 	}
 }
 
+static uint32_t ui_frame = 0;
+
 static void handle_joysticks() {
 	static uint32_t switches_history[3] = { 0, 0, 0 };
 	static uint32_t switches_last = 0;
@@ -382,8 +384,6 @@ int main() {
 	lcd_draw_string(0, 0, "HackRF PortaPack", 16);
 	lcd_colors_invert();
 
-	uint32_t frame = 0;
-	
 	while(1) {
 		ui_render_fields();
 
@@ -395,8 +395,8 @@ int main() {
 		while( !ipc_queue_is_empty() );
 		handle_joysticks();
 
-		frame += 1;
-		draw_int(frame, "%8d", 256, 0);
+		ui_frame += 1;
+		draw_int(ui_frame, "%8d", 256, 224);
 	}
 
 	return 0;
