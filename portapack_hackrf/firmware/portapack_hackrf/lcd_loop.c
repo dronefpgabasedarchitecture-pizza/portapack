@@ -342,30 +342,31 @@ static void handle_joysticks() {
 	switches_history[2] = switches_raw;
 
 	const uint32_t switches_event = switches_now ^ switches_last;
-	const uint32_t switches = switches_event & switches_now;
+	const uint32_t switches_event_on = switches_event & switches_now;
+	const uint32_t switches_event_off = switches_event & switches_last;
 	switches_last = switches_now;
 
-	if( switches & SWITCH_S1_UP ) {
+	if( switches_event_on & SWITCH_S1_UP ) {
 		ui_field_value_up(1);
 	}
 
-	if( switches & SWITCH_S1_DOWN ) {
+	if( switches_event_on & SWITCH_S1_DOWN ) {
 		ui_field_value_down(1);
 	}
 
-	if( switches & SWITCH_S2_UP ) {
+	if( switches_event_on & SWITCH_S2_UP ) {
 		ui_field_navigate_up();
 	}
 
-	if( switches & SWITCH_S2_DOWN ) {
+	if( switches_event_on & SWITCH_S2_DOWN ) {
 		ui_field_navigate_down();
 	}
 
-	if( switches & SWITCH_S2_LEFT ) {
+	if( switches_event_on & SWITCH_S2_LEFT ) {
 		ui_field_navigate_left();
 	}
 
-	if( switches & SWITCH_S2_RIGHT ) {
+	if( switches_event_on & SWITCH_S2_RIGHT ) {
 		ui_field_navigate_right();
 	}
 }
