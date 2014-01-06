@@ -381,7 +381,7 @@ int main() {
 	lcd_clear();
 
 	lcd_colors_invert();
-	lcd_draw_string(0, 0, "HackRF PortaPack", 16);
+	lcd_draw_string(0, 0, " ========== HackRF PortaPack ========== ", 40);
 	lcd_colors_invert();
 
 	while(1) {
