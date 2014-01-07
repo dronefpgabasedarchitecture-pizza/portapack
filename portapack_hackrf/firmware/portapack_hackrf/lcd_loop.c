@@ -94,7 +94,7 @@ typedef struct ui_field_navigation_t {
 	ui_field_index_t right;
 } ui_field_navigation_t;
 
-typedef void (*ui_field_value_change_callback_t)(const int32_t amount);
+typedef void (*ui_field_value_change_callback_t)(const uint32_t repeat_count);
 
 typedef struct ui_field_value_change_t {
 	ui_field_value_change_callback_t up;
@@ -141,44 +141,58 @@ static const void* get_audio_out_gain() {
 	return &device_state->audio_out_gain_db;
 }
 
-static void ui_field_value_up_frequency(const int32_t amount) {
-	ipc_command_set_frequency(device_state->tuned_hz + (amount * 25000));
+static int32_t frequency_repeat_acceleration(const uint32_t repeat_count) {
+	int32_t amount = 25000;
+	if( repeat_count >= 160 ) {
+		amount = 100000000;
+	} else if( repeat_count >= 80 ) {
+		amount = 10000000;
+	} else if( repeat_count >= 40 ) {
+		amount = 1000000;
+	} else if( repeat_count >= 20 ) {
+		amount = 100000;
+	}
+	return amount;
 }
 
-static void ui_field_value_down_frequency(const int32_t amount) {
-	ipc_command_set_frequency(device_state->tuned_hz - (amount * 25000));
+static void ui_field_value_up_frequency(const uint32_t repeat_count) {
+	ipc_command_set_frequency(device_state->tuned_hz + frequency_repeat_acceleration(repeat_count));
 }
 
-static void ui_field_value_up_rf_gain(const int32_t amount) {
-	ipc_command_set_rf_gain(device_state->lna_gain_db + (amount * 14));
+static void ui_field_value_down_frequency(const uint32_t repeat_count) {
+	ipc_command_set_frequency(device_state->tuned_hz - frequency_repeat_acceleration(repeat_count));
 }
 
-static void ui_field_value_down_rf_gain(const int32_t amount) {
-	ipc_command_set_rf_gain(device_state->lna_gain_db - (amount * 14));
+static void ui_field_value_up_rf_gain(const uint32_t repeat_count) {
+	ipc_command_set_rf_gain(device_state->lna_gain_db + 14);
 }
 
-static void ui_field_value_up_if_gain(const int32_t amount) {
-	ipc_command_set_if_gain(device_state->if_gain_db + (amount * 8));
+static void ui_field_value_down_rf_gain(const uint32_t repeat_count) {
+	ipc_command_set_rf_gain(device_state->lna_gain_db - 14);
 }
 
-static void ui_field_value_down_if_gain(const int32_t amount) {
-	ipc_command_set_if_gain(device_state->if_gain_db - (amount * 8));
+static void ui_field_value_up_if_gain(const uint32_t repeat_count) {
+	ipc_command_set_if_gain(device_state->if_gain_db + 8);
 }
 
-static void ui_field_value_up_bb_gain(const int32_t amount) {
-	ipc_command_set_bb_gain(device_state->bb_gain_db + (amount * 2));
+static void ui_field_value_down_if_gain(const uint32_t repeat_count) {
+	ipc_command_set_if_gain(device_state->if_gain_db - 8);
 }
 
-static void ui_field_value_down_bb_gain(const int32_t amount) {
-	ipc_command_set_bb_gain(device_state->bb_gain_db - (amount * 2));
+static void ui_field_value_up_bb_gain(const uint32_t repeat_count) {
+	ipc_command_set_bb_gain(device_state->bb_gain_db + 2);
 }
 
-static void ui_field_value_up_audio_out_gain(const int32_t amount) {
-	ipc_command_set_audio_out_gain(device_state->audio_out_gain_db + (amount * 1));
+static void ui_field_value_down_bb_gain(const uint32_t repeat_count) {
+	ipc_command_set_bb_gain(device_state->bb_gain_db - 2);
 }
 
-static void ui_field_value_down_audio_out_gain(const int32_t amount) {
-	ipc_command_set_audio_out_gain(device_state->audio_out_gain_db - (amount * 1));
+static void ui_field_value_up_audio_out_gain(const uint32_t repeat_count) {
+	ipc_command_set_audio_out_gain(device_state->audio_out_gain_db + 1);
+}
+
+static void ui_field_value_down_audio_out_gain(const uint32_t repeat_count) {
+	ipc_command_set_audio_out_gain(device_state->audio_out_gain_db - 1);
 }
 
 static ui_field_text_t fields[] = {
@@ -309,17 +323,17 @@ static void ui_field_navigate_right() {
 	ui_field_update_focus(fields[selected_field].navigation.right);
 }
 
-static void ui_field_value_up(const int32_t amount) {
+static void ui_field_value_up(const uint32_t repeat_count) {
 	ui_field_value_change_callback_t fn = fields[selected_field].value_change.up;
 	if( fn != NULL ) {
-		fn(amount);
+		fn(repeat_count);
 	}
 }
 
-static void ui_field_value_down(const int32_t amount) {
+static void ui_field_value_down(const uint32_t repeat_count) {
 	ui_field_value_change_callback_t fn = fields[selected_field].value_change.down;
 	if( fn != NULL ) {
-		fn(amount);
+		fn(repeat_count);
 	}
 }
 
@@ -341,43 +355,43 @@ static const uint32_t ui_switch_repeat_rate = 15;
 typedef struct ui_switch_t {
 	uint32_t mask;
 	uint32_t time_on;
-	void (*action)(const uint32_t on_duration);
+	void (*action)(const uint32_t repeat_count);
 } ui_switch_t;
 
-void switch_s1_up(const uint32_t on_duration) {
-	ui_field_value_up(1);
+void switch_s1_up(const uint32_t repeat_count) {
+	ui_field_value_up(repeat_count);
 }
 
-void switch_s1_down(const uint32_t on_duration) {
-	ui_field_value_down(1);
+void switch_s1_down(const uint32_t repeat_count) {
+	ui_field_value_down(repeat_count);
 }
 
-void switch_s1_left(const uint32_t on_duration) {
+void switch_s1_left(const uint32_t repeat_count) {
 }
 
-void switch_s1_right(const uint32_t on_duration) {
+void switch_s1_right(const uint32_t repeat_count) {
 }
 
-void switch_s1_select(const uint32_t on_duration) {
+void switch_s1_select(const uint32_t repeat_count) {
 }
 
-void switch_s2_up(const uint32_t on_duration) {
+void switch_s2_up(const uint32_t repeat_count) {
 	ui_field_navigate_up();
 }
 
-void switch_s2_down(const uint32_t on_duration) {
+void switch_s2_down(const uint32_t repeat_count) {
 	ui_field_navigate_down();
 }
 
-void switch_s2_left(const uint32_t on_duration) {
+void switch_s2_left(const uint32_t repeat_count) {
 	ui_field_navigate_left();
 }
 
-void switch_s2_right(const uint32_t on_duration) {
+void switch_s2_right(const uint32_t repeat_count) {
 	ui_field_navigate_right();
 }
 
-void switch_s2_select(const uint32_t on_duration) {
+void switch_s2_select(const uint32_t repeat_count) {
 }
 
 static ui_switch_t switches[] = {
@@ -421,7 +435,8 @@ static void handle_joysticks() {
 				if( frames_since_on >= ui_switch_repeat_after ) {
 					const uint32_t frames_since_first_repeat = frames_since_on - ui_switch_repeat_after;
 					if( (frames_since_first_repeat % ui_switch_repeat_rate) == 0 ) {
-						sw->action(frames_since_on);
+						const uint32_t repeat_count = frames_since_first_repeat / ui_switch_repeat_rate;
+						sw->action(repeat_count);
 					}
 				}
 			}
