@@ -164,34 +164,42 @@ static void ui_field_value_down_frequency(const uint32_t repeat_count) {
 }
 
 static void ui_field_value_up_rf_gain(const uint32_t repeat_count) {
+	(void)repeat_count;
 	ipc_command_set_rf_gain(device_state->lna_gain_db + 14);
 }
 
 static void ui_field_value_down_rf_gain(const uint32_t repeat_count) {
+	(void)repeat_count;
 	ipc_command_set_rf_gain(device_state->lna_gain_db - 14);
 }
 
 static void ui_field_value_up_if_gain(const uint32_t repeat_count) {
+	(void)repeat_count;
 	ipc_command_set_if_gain(device_state->if_gain_db + 8);
 }
 
 static void ui_field_value_down_if_gain(const uint32_t repeat_count) {
+	(void)repeat_count;
 	ipc_command_set_if_gain(device_state->if_gain_db - 8);
 }
 
 static void ui_field_value_up_bb_gain(const uint32_t repeat_count) {
+	(void)repeat_count;
 	ipc_command_set_bb_gain(device_state->bb_gain_db + 2);
 }
 
 static void ui_field_value_down_bb_gain(const uint32_t repeat_count) {
+	(void)repeat_count;
 	ipc_command_set_bb_gain(device_state->bb_gain_db - 2);
 }
 
 static void ui_field_value_up_audio_out_gain(const uint32_t repeat_count) {
+	(void)repeat_count;
 	ipc_command_set_audio_out_gain(device_state->audio_out_gain_db + 1);
 }
 
 static void ui_field_value_down_audio_out_gain(const uint32_t repeat_count) {
+	(void)repeat_count;
 	ipc_command_set_audio_out_gain(device_state->audio_out_gain_db - 1);
 }
 
@@ -367,31 +375,39 @@ void switch_s1_down(const uint32_t repeat_count) {
 }
 
 void switch_s1_left(const uint32_t repeat_count) {
+	(void)repeat_count;
 }
 
 void switch_s1_right(const uint32_t repeat_count) {
+	(void)repeat_count;
 }
 
 void switch_s1_select(const uint32_t repeat_count) {
+	(void)repeat_count;
 }
 
 void switch_s2_up(const uint32_t repeat_count) {
+	(void)repeat_count;
 	ui_field_navigate_up();
 }
 
 void switch_s2_down(const uint32_t repeat_count) {
+	(void)repeat_count;
 	ui_field_navigate_down();
 }
 
 void switch_s2_left(const uint32_t repeat_count) {
+	(void)repeat_count;
 	ui_field_navigate_left();
 }
 
 void switch_s2_right(const uint32_t repeat_count) {
+	(void)repeat_count;
 	ui_field_navigate_right();
 }
 
 void switch_s2_select(const uint32_t repeat_count) {
+	(void)repeat_count;
 }
 
 static ui_switch_t switches[] = {
