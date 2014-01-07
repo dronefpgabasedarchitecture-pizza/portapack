@@ -349,8 +349,8 @@ static uint32_t ui_frame_difference(const uint32_t frame1, const uint32_t frame2
 	return frame2 - frame1;
 }
 
-static const uint32_t ui_switch_repeat_after = 45;
-static const uint32_t ui_switch_repeat_rate = 15;
+static const uint32_t ui_switch_repeat_after = 30;
+static const uint32_t ui_switch_repeat_rate = 10;
 
 typedef struct ui_switch_t {
 	uint32_t mask;
