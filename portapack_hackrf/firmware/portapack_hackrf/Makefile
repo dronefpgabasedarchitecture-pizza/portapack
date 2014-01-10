@@ -57,7 +57,6 @@ SRC_M4_C = \
 	$(PATH_HACKRF_FIRMWARE_COMMON)/sgpio.c \
 	$(PATH_HACKRF_FIRMWARE_COMMON)/gpdma.c \
 	$(PATH_HACKRF_FIRMWARE_COMMON)/sgpio_dma.c \
-	$(PATH_HACKRF_FIRMWARE_COMMON)/m0_startup.c \
 	$(PATH_HACKRF_FIRMWARE_COMMON)/si5351c.c \
 	$(PATH_HACKRF_FIRMWARE_COMMON)/max2837.c \
 	$(PATH_HACKRF_FIRMWARE_COMMON)/max5864.c \
@@ -80,6 +79,7 @@ ifeq ($(ADDON),PORTAPACK)
 	SRC_M4_C += demodulate.c
 	SRC_M4_C += kfifo.c
 	SRC_M4_C += ipc.c
+	SRC_M4_C += m0_startup.c
 
 	ifeq ($(BOARD),JAWBREAKER)
 		SRC_M4_C += portapack_spi.c

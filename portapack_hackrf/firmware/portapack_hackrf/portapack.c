@@ -31,12 +31,12 @@
 #include <sgpio.h>
 #include <streaming.h>
 #include <max2837.h>
-#include <m0_startup.h>
 #include <gpdma.h>
 #include <sgpio_dma.h>
 
 #include "portapack_audio.h"
 #include "portapack_i2s.h"
+#include "m0_startup.h"
 
 #include "lcd.h"
 #include "lcd_loop.h"
