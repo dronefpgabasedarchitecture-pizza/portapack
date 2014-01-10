@@ -45,6 +45,13 @@ static void draw_int(int32_t value, const char* const format, uint_fast16_t x, u
 	lcd_draw_string(x, y, temp, min(text_len, temp_len));
 }
 
+static void draw_str(const char* const value, const char* const format, uint_fast16_t x, uint_fast16_t y) {
+	char temp[80];
+	const size_t temp_len = 79;
+	const size_t text_len = snprintf(temp, temp_len, format, value);
+	lcd_draw_string(x, y, temp, min(text_len, temp_len));
+}
+
 static void draw_mhz(int64_t value, const char* const format, uint_fast16_t x, uint_fast16_t y) {
 	char temp[80];
 	const size_t temp_len = 79;
@@ -85,6 +92,7 @@ typedef enum {
 	UI_FIELD_IF_GAIN,
 	UI_FIELD_BB_GAIN,
 	UI_FIELD_AUDIO_OUT_GAIN,
+	UI_FIELD_RECEIVER_CONFIGURATION,
 } ui_field_index_t;
 
 typedef struct ui_field_navigation_t {
@@ -121,6 +129,11 @@ static void render_field_int(const ui_field_text_t* const field) {
 	draw_int(value, field->format, field->x, field->y);
 }
 
+static void render_field_str(const ui_field_text_t* const field) {
+	const char* const value = (char*)field->getter();
+	draw_str(value, field->format, field->x, field->y);
+}
+
 static const void* get_tuned_hz() {
 	return &device_state->tuned_hz;
 }
@@ -139,6 +152,15 @@ static const void* get_bb_gain() {
 
 static const void* get_audio_out_gain() {
 	return &device_state->audio_out_gain_db;
+}
+
+static const void* get_receiver_configuration() {
+	switch(device_state->receiver_configuration_index) {
+	case 0: return "NBAM";
+	case 1: return "NBFM";
+	case 2: return "WBFM";
+	default: return "????";
+	}
 }
 
 static int32_t frequency_repeat_acceleration(const uint32_t repeat_count) {
@@ -203,6 +225,16 @@ static void ui_field_value_down_audio_out_gain(const uint32_t repeat_count) {
 	ipc_command_set_audio_out_gain(device_state->audio_out_gain_db - 1);
 }
 
+static void ui_field_value_up_receiver_configuration(const uint32_t repeat_count) {
+	(void)repeat_count;
+	ipc_command_set_receiver_configuration(device_state->receiver_configuration_index + 1);
+}
+
+static void ui_field_value_down_receiver_configuration(const uint32_t repeat_count) {
+	(void)repeat_count;
+	ipc_command_set_receiver_configuration(device_state->receiver_configuration_index - 1);
+}
+
 static ui_field_text_t fields[] = {
 	[UI_FIELD_FREQUENCY] = {
 		.x = 0, .y = 32,
@@ -210,7 +242,7 @@ static ui_field_text_t fields[] = {
 			.up = UI_FIELD_BB_GAIN,
 			.down = UI_FIELD_LNA_GAIN,
 			.left = UI_FIELD_FREQUENCY,
-			.right = UI_FIELD_AUDIO_OUT_GAIN,
+			.right = UI_FIELD_RECEIVER_CONFIGURATION,
 		},
 		.value_change = {
 			.up = ui_field_value_up_frequency,
@@ -273,7 +305,7 @@ static ui_field_text_t fields[] = {
 		.navigation = {
 			.up = UI_FIELD_BB_GAIN,
 			.down = UI_FIELD_LNA_GAIN,
-			.left = UI_FIELD_FREQUENCY,
+			.left = UI_FIELD_RECEIVER_CONFIGURATION,
 			.right = UI_FIELD_AUDIO_OUT_GAIN,
 		},
 		.value_change = {
@@ -283,7 +315,23 @@ static ui_field_text_t fields[] = {
 		.format = "Vol %3d dB",
 		.getter = get_audio_out_gain,
 		.render = render_field_int
-	}
+	},
+	[UI_FIELD_RECEIVER_CONFIGURATION] = {
+		.x = 128, .y = 32,
+		.navigation = {
+			.up = UI_FIELD_RECEIVER_CONFIGURATION,
+			.down = UI_FIELD_RECEIVER_CONFIGURATION,
+			.left = UI_FIELD_FREQUENCY,
+			.right = UI_FIELD_AUDIO_OUT_GAIN,
+		},
+		.value_change = {
+			.up = ui_field_value_up_receiver_configuration,
+			.down = ui_field_value_down_receiver_configuration,
+		},
+		.format = "Mode %4s",
+		.getter = get_receiver_configuration,
+		.render = render_field_str,
+	},
 };
 
 static ui_field_index_t selected_field = UI_FIELD_FREQUENCY;

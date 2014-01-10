@@ -47,6 +47,7 @@
 #include "demodulate.h"
 
 #include "ipc.h"
+#include "linux_stuff.h"
 
 static int8_t* sample_buffer_0 = (int8_t*)0x20008000;
 static int8_t* sample_buffer_1 = (int8_t*)0x2000c000;
@@ -129,8 +130,6 @@ typedef struct rx_fm_broadcast_to_audio_state_t {
 	fir_cic4_decim_2_real_s16_s16_state_t audio_dec_3;
 	fir_64_decim_2_real_s16_s16_state_t audio_dec_4;
 } rx_fm_broadcast_to_audio_state_t;
-
-static rx_fm_broadcast_to_audio_state_t rx_fm_broadcast_to_audio_state;
 
 void rx_fm_broadcast_to_audio_init(rx_fm_broadcast_to_audio_state_t* const state) {
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_init(&state->dec_stage_1_state);
@@ -229,8 +228,6 @@ typedef struct rx_fm_narrowband_to_audio_state_t {
 	fir_64_decim_2_real_s16_s16_state_t audio_dec;
 } rx_fm_narrowband_to_audio_state_t;
 
-static rx_fm_narrowband_to_audio_state_t rx_fm_narrowband_to_audio_state;
-
 void rx_fm_narrowband_to_audio_init(rx_fm_narrowband_to_audio_state_t* const state) {
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_init(&state->bb_dec_1);
 	fir_cic3_decim_2_s16_s16_init(&state->bb_dec_2);
@@ -318,8 +315,6 @@ typedef struct rx_am_to_audio_state_t {
 	fir_64_decim_2_real_s16_s16_state_t audio_dec;
 } rx_am_to_audio_state_t;
 
-static rx_am_to_audio_state_t rx_am_to_audio_state;
-
 void rx_am_to_audio_init(rx_am_to_audio_state_t* const state) {
 	translate_fs_over_4_and_decimate_by_2_cic_3_s8_s16_init(&state->bb_dec_1);
 	fir_cic3_decim_2_s16_s16_init(&state->bb_dec_2);
@@ -395,44 +390,70 @@ void rx_am_to_audio(rx_am_to_audio_state_t* const state, complex_s8_t* const in,
 	duration_all = systick_difference(start_time, audio_end_time);
 }
 
-void set_rx_mode() {
+typedef void (*receiver_state_init_t)(void* const state);
+typedef void (*receiver_baseband_handler_t)(void* const state, complex_s8_t* const data, const size_t sample_count, void* const out_buffer);
+
+static volatile receiver_baseband_handler_t receiver_baseband_handler = NULL;
+
+typedef struct receiver_configuration_t {
+	receiver_state_init_t init;
+	receiver_baseband_handler_t baseband_handler;
+	const char* const name;
+} receiver_configuration_t;
+
+static const receiver_configuration_t receiver_configurations[] = {
+	{ .init = rx_am_to_audio_init, .baseband_handler = rx_am_to_audio, "NBAM" },
+	{ .init = rx_fm_narrowband_to_audio_init, .baseband_handler = rx_fm_narrowband_to_audio, "NBFM" },
+	{ .init = rx_fm_broadcast_to_audio_init, .baseband_handler = rx_fm_broadcast_to_audio, "WBFM" },
+};
+
+static int receiver_configuration_index = 0;
+
+static uint8_t receiver_state_buffer[1024];
+
+void set_rx_mode(const uint32_t new_receiver_configuration_index) {
+	if( new_receiver_configuration_index >= ARRAY_SIZE(receiver_configurations) ) {
+		return;
+	}
+	
+	// TODO: Mute audio, clear audio buffers?
+
+	sgpio_dma_stop();
+	sgpio_cpld_stream_disable();
+
 	sample_rate_set(12288000);
 	sgpio_cpld_stream_rx_set_decimation(3);
 	baseband_filter_bandwidth_set(1750000);
 
-	//rx_fm_broadcast_to_audio_init(&rx_fm_broadcast_to_audio_state);
-	//rx_fm_narrowband_to_audio_init(&rx_fm_narrowband_to_audio_state);
-	rx_am_to_audio_init(&rx_am_to_audio_state);
-}
+	/* TODO: Ensure receiver_state_buffer is large enough for new mode, or start using
+	 * heap to allocate necessary memory.
+	 */
+	device_state->receiver_configuration_index = new_receiver_configuration_index;
 
-//#include "decimate_test.h"
+	const receiver_configuration_t* const receiver_configuration = &receiver_configurations[device_state->receiver_configuration_index];
+	receiver_configuration->init(receiver_state_buffer);
+	receiver_baseband_handler = receiver_configuration->baseband_handler;
+
+	sgpio_dma_rx_start(&lli_rx[0]);
+	sgpio_cpld_stream_enable();
+}
 
 void portapack_init() {
 	cpu_clock_pll1_max_speed();
-
-
-
-
-//decimate_test();
-
-
-
-
+	
 	portapack_audio_init();
 
 	sgpio_set_slice_mode(false);
 
 	rf_path_init();
 
-	set_rx_mode();
-
 	rf_path_set_direction(RF_PATH_DIRECTION_RX);
 
-	device_state->tuned_hz = 128350000;
+	device_state->tuned_hz = 123775000;
 	device_state->lna_gain_db = 0;
-	device_state->if_gain_db = 24;
+	device_state->if_gain_db = 40;
 	device_state->bb_gain_db = 16;
-	device_state->audio_out_gain_db = -18;
+	device_state->audio_out_gain_db = 0;
 
 	set_frequency(device_state->tuned_hz);
 	rf_path_set_lna((device_state->lna_gain_db >= 14) ? 1 : 0);
@@ -461,11 +482,10 @@ void portapack_init() {
 	nvic_set_priority(NVIC_DMA_IRQ, 0);
 	nvic_enable_irq(NVIC_DMA_IRQ);
 
-	sgpio_dma_rx_start(&lli_rx[0]);
-	sgpio_cpld_stream_enable();
-
 	nvic_set_priority(NVIC_M0CORE_IRQ, 255);
 	nvic_enable_irq(NVIC_M0CORE_IRQ);
+
+	set_rx_mode(0);
 }
 
 static volatile uint32_t sample_frame_count = 0;
@@ -483,14 +503,14 @@ void dma_isr() {
 	 * -> 3.072MHz complex<int8>[2048] == 666.667 usec/block == 136000 cycles/sec
 	 */
 	
-	int16_t work[2048];
-	//rx_fm_broadcast_to_audio(&rx_fm_broadcast_to_audio_state, &completed_buffer[0], 2048, work);
-	//rx_fm_narrowband_to_audio(&rx_fm_narrowband_to_audio_state, &completed_buffer[0], 2048, work);
-	rx_am_to_audio(&rx_am_to_audio_state, &completed_buffer[0], 2048, work);
+	if( receiver_baseband_handler ) {
+		int16_t work[2048];
+		receiver_baseband_handler(receiver_state_buffer, completed_buffer, 2048, work);
 
-	int16_t* const audio_tx_buffer = portapack_i2s_tx_empty_buffer();
-	for(size_t i=0, j=0; i<I2S_BUFFER_SAMPLE_COUNT; i++, j++) {
-		audio_tx_buffer[i*2] = audio_tx_buffer[i*2+1] = work[j];
+		int16_t* const audio_tx_buffer = portapack_i2s_tx_empty_buffer();
+		for(size_t i=0, j=0; i<I2S_BUFFER_SAMPLE_COUNT; i++, j++) {
+			audio_tx_buffer[i*2] = audio_tx_buffer[i*2+1] = work[j];
+		}
 	}
 }
 
@@ -533,6 +553,11 @@ void handle_command_set_audio_out_gain(const void* const arg) {
 	device_state->audio_out_gain_db = portapack_audio_out_volume_set(command->gain_db);
 }
 
+void handle_command_set_receiver_configuration(const void* const arg) {
+	const ipc_command_set_receiver_configuration_t* const command = arg;
+	set_rx_mode(command->index);
+}
+
 typedef void (*command_handler_t)(const void* const command);
 
 static command_handler_t command_handler[] = {
@@ -542,6 +567,7 @@ static command_handler_t command_handler[] = {
 	[IPC_COMMAND_ID_SET_BB_GAIN] = handle_command_set_bb_gain,
 	[IPC_COMMAND_ID_SET_FREQUENCY] = handle_command_set_frequency,
 	[IPC_COMMAND_ID_SET_AUDIO_OUT_GAIN] = handle_command_set_audio_out_gain,
+	[IPC_COMMAND_ID_SET_RECEIVER_CONFIGURATION] = handle_command_set_receiver_configuration,
 };
 static const size_t command_handler_count = sizeof(command_handler) / sizeof(command_handler[0]);
 

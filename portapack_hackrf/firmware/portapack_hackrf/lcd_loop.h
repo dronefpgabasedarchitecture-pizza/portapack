@@ -30,6 +30,7 @@ typedef struct device_state_t {
 	int32_t if_gain_db;
 	int32_t bb_gain_db;
 	int32_t audio_out_gain_db;
+	int32_t receiver_configuration_index;
 
 	uint32_t duration_decimate;
 	uint32_t duration_channel_filter;

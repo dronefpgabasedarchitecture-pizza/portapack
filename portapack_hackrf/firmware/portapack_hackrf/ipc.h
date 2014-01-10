@@ -31,7 +31,8 @@ typedef enum {
 	IPC_COMMAND_ID_SET_RF_GAIN = 2,
 	IPC_COMMAND_ID_SET_IF_GAIN = 3,
 	IPC_COMMAND_ID_SET_BB_GAIN = 4,
-	IPC_COMMAND_ID_SET_AUDIO_OUT_GAIN = 5
+	IPC_COMMAND_ID_SET_AUDIO_OUT_GAIN = 5,
+	IPC_COMMAND_ID_SET_RECEIVER_CONFIGURATION = 6,
 } ipc_command_id_t;
 
 typedef struct ipc_command_t {
@@ -63,6 +64,11 @@ typedef struct ipc_command_set_audio_out_gain_t {
 	int32_t gain_db;
 } ipc_command_set_audio_out_gain_t;
 
+typedef struct ipc_command_set_receiver_configuration_t {
+	uint32_t id;
+	uint32_t index;
+} ipc_command_set_receiver_configuration_t;
+
 void ipc_init();
 
 void ipc_command_set_frequency(int64_t value_hz);
@@ -70,6 +76,7 @@ void ipc_command_set_rf_gain(int32_t value_db);
 void ipc_command_set_if_gain(int32_t value_db);
 void ipc_command_set_bb_gain(int32_t value_db);
 void ipc_command_set_audio_out_gain(int32_t value_db);
+void ipc_command_set_receiver_configuration(uint32_t index);
 
 int ipc_queue_is_empty();
 ipc_command_id_t ipc_queue_read(void* buffer, const size_t buffer_length);
