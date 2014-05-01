@@ -79,6 +79,12 @@ void lcd_clear_rectangle(
 	const uint_fast16_t h
 );
 
+void lcd_draw_char(
+	const uint_fast16_t x,
+	const uint_fast16_t y,
+	const char c
+);
+
 void lcd_draw_string(
 	const uint_fast16_t x,
 	const uint_fast16_t y,

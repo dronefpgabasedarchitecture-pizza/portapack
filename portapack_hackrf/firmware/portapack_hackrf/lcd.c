@@ -317,6 +317,15 @@ void lcd_draw_string(
 	}
 }
 
+void lcd_draw_char(
+	const uint_fast16_t x,
+	const uint_fast16_t y,
+	const char c
+) {
+	/* TODO: Refactor to be a dependency of lcd_draw_string! */
+	lcd_draw_string(x, y, &c, 1);
+}
+
 uint32_t lcd_data_read_switches() {
 	// Discharge all pins before changing to inputs for reading.
 	GPIO3_MPIN = 0 << 8;
